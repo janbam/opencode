@@ -158,29 +158,34 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 ## Notes for Next Session
 
 ### Where to Start
-1. **All tool files done** — `src/tool/*.ts` migrated
-2. Continue with other source files
-3. Use `NO-BUN` markers as documented in CLAUDE.md
+1. **All tool/*.ts done** — 7 files migrated
+2. **All file/*.ts done** — 4 files migrated
+3. Continue with remaining source files
+4. Use `NO-BUN` markers as documented in CLAUDE.md
 
 ### Recommended Migration Order
-Tool files are done. Continue with:
+Tool and file utilities done. Continue with:
 
-1. **Medium** (multiple APIs):
-   - `src/file/ripgrep.ts` - $, spawn
-   - `src/file/fzf.ts` - which, file
-   - `src/file/index.ts` - $, file
-   - `src/file/time.ts` - file
-   - `src/format/*.ts` - Bun.which, spawn
+1. **Easy** (file ops only):
    - `src/session/*.ts` - file
    - `src/auth/*.ts` - file
    - `src/config/*.ts` - file
    - `src/util/*.ts` - file
+   - `src/storage/*.ts` - file
+   - `src/global/*.ts` - file
+   - `src/app/*.ts` - file, write
+   - `src/provider/*.ts` - file, write
 
-2. **Complex** (critical/many APIs):
+2. **Medium** (multiple APIs):
+   - `src/format/*.ts` - Bun.which, spawn
+   - `src/lsp/*.ts` - $, which, spawn, file
+   - `src/installation/*.ts` - $
+   - `src/snapshot/*.ts` - $
+
+3. **Complex** (critical/many APIs):
    - `src/server/server.ts` - Bun.serve → @hono/node-server
    - `src/cli/cmd/tui.ts` - embeddedFiles, spawn (needs TUI download logic)
    - `src/bun/index.ts` - may be removed entirely
-   - `src/lsp/*.ts` - $, which, spawn, file
 
 ### Key Decisions Made
 - Using `tsx` for development
