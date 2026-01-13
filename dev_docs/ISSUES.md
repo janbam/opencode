@@ -8,11 +8,11 @@
 | ID | Severity | Area | Description | Notes |
 |----|----------|------|-------------|-------|
 | ~~I-002~~ | ~~Low~~ | ~~Tests~~ | ~~4 edit.test.ts failures (EscapeNormalizedReplacer)~~ | **RESOLVED**: Tests disabled (replacer intentionally commented out) |
-| I-003 | High | Runtime | Server.address() returns null on startup | Blocks TUI launch, needs investigation |
+| ~~I-003~~ | ~~High~~ | ~~Runtime~~ | ~~Server.address() returns null on startup~~ | **RESOLVED**: async callback pattern + Response duck typing |
 | ~~I-004~~ | ~~Low~~ | ~~Types~~ | ~~19 pnpm type inference errors~~ | **RESOLVED**: disabled declaration emit |
 | ~~I-005~~ | ~~Medium~~ | ~~Tests~~ | ~~vitest fails: zod-openapi extension not loaded~~ | **RESOLVED**: centralized lib/z.ts wrapper |
 
-### I-003: Server.address() Returns Null
+### I-003: Server.address() Returns Null (RESOLVED)
 
 **Symptom:** When running `./dist/opencode .` or `pnpm dev`, the app hangs with a blinking cursor.
 
@@ -21,17 +21,51 @@
 ERROR service=default name=TypeError message=Cannot read properties of null (reading 'address') fatal
 ```
 
-**Location:** `src/server/server.ts:754`
+**Root Cause (Primary):** The `@hono/node-server` `serve()` function returns immediately but the server may not be listening yet. `nodeServer.address()` returns `null` until the server is actually bound.
+
+**Root Cause (Secondary):** After fixing the primary issue, a second error appeared: `The "data" argument must be of type string... Received an instance of Response`. This was caused by `instanceof Response` returning `false` for Node.js native fetch Response objects due to realm/context differences.
+
+#### Resolution (Session 644d2e91)
+
+**Primary Fix:** Changed `Server.listen()` from synchronous to async using the `listeningListener` callback:
+
 ```typescript
+// Before (broken):
 const nodeServer = serve({ ... })
-const address = nodeServer.address() as AddressInfo  // <- returns null
+const address = nodeServer.address() as AddressInfo  // null!
+
+// After (working):
+return new Promise((resolve) => {
+  const nodeServer = serve({ ... }, (info) => {
+    // Callback fires when server is actually listening
+    resolve({ hostname: info.address, port: info.port, ... })
+  })
+})
 ```
 
-**Root Cause:** The `@hono/node-server` `serve()` function returns immediately but the server may not be listening yet. `nodeServer.address()` returns `null` until the server is actually bound.
+Updated call sites in `tui.ts` and `serve.ts` to `await Server.listen()`.
 
-**Potential Fix:** Wait for the 'listening' event or use a callback pattern.
+**Secondary Fix:** Changed Response detection from `instanceof` to duck typing in `compat/file.ts`:
+
+```typescript
+// Before (broken with Node.js native fetch):
+if (content instanceof Response) { ... }
+
+// After (works across realms):
+const isResponseLike =
+  content?.constructor?.name === "Response" &&
+  typeof content.arrayBuffer === "function"
+if (isResponseLike) { ... }
+```
+
+**Files Modified:**
+- `src/server/server.ts` — async listen() with callback
+- `src/cli/cmd/tui.ts` — await Server.listen()
+- `src/cli/cmd/serve.ts` — await Server.listen()
+- `src/compat/file.ts` — duck typing for Response
 
 **Discovered:** Session f5bc3052
+**Resolved:** Session 644d2e91
 
 ### I-002: EscapeNormalizedReplacer Test Failures (RESOLVED)
 
@@ -80,6 +114,7 @@ All files using `.openapi()` now import from `../lib/z` instead of `"zod"`.
 |----|------|-------------|------------|
 | I-001 | Build | ESM import resolution in bundled code | **Resolved**: Switched to tsx-based production build — no bundling needed |
 | I-002 | Tests | 4 edit.test.ts failures (EscapeNormalizedReplacer) | **Resolved**: Tests disabled to match intentionally-disabled replacer (cf83e31) |
+| I-003 | Runtime | Server.address() returns null on startup | **Resolved**: Async callback pattern for @hono/node-server + duck typing for Response |
 | I-004 | Types | 19 pnpm type inference errors (TS2742, TS4094, TS4058) | **Resolved**: Disabled `declaration` and `declarationMap` in tsconfig (not needed for local deployment) |
 | I-005 | Tests | vitest zod-openapi extension not loaded | **Resolved**: Created `src/lib/z.ts` centralized wrapper; all `.openapi()` files import from there |
 

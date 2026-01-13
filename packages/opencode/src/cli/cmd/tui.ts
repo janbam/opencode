@@ -54,7 +54,8 @@ export const TuiCommand = cmd({
           return "needs_provider"
         }
 
-        const server = Server.listen({
+        // NO-BUN: Server.listen() is now async (waits for listening event)
+        const server = await Server.listen({
           port: 0,
           hostname: "127.0.0.1",
         })

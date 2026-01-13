@@ -122,14 +122,25 @@ export async function write(
   await mkdir(path.dirname(targetPath), { recursive: true })
 
   // Handle Response object (used in some fetch scenarios)
-  if (content instanceof Response) {
-    const buffer = await content.arrayBuffer()
+  // NO-BUN: Use duck typing instead of instanceof Response
+  // Node.js fetch may return a Response from a different realm, causing instanceof to fail.
+  // We check for the Response interface: constructor.name + arrayBuffer method.
+  const isResponseLike =
+    content?.constructor?.name === "Response" &&
+    typeof (content as Response).arrayBuffer === "function"
+
+  if (isResponseLike) {
+    const buffer = await (content as Response).arrayBuffer()
     await writeFile(targetPath, Buffer.from(buffer))
     return
   }
 
+  // At this point, content is not a Response (we handled that above)
+  // Cast to exclude Response from the union type for TypeScript
+  const nonResponseContent = content as Exclude<typeof content, Response>
+
   // Convert ArrayBuffer to Buffer if needed
-  const data = content instanceof ArrayBuffer ? Buffer.from(content) : content
+  const data = nonResponseContent instanceof ArrayBuffer ? Buffer.from(nonResponseContent) : nonResponseContent
   await writeFile(targetPath, data)
 }
 

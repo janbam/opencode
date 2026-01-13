@@ -33,7 +33,8 @@ export const ServeCommand = cmd({
       const port = args.port
 
       await Share.init()
-      const server = Server.listen({
+      // NO-BUN: Server.listen() is now async (waits for listening event)
+      const server = await Server.listen({
         port,
         hostname,
       })

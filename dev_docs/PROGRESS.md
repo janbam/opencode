@@ -6,7 +6,7 @@
 >
 > **SCOPE: Linux only, local deployment only, no publishing**
 
-## Current Status: 🟡 Phase 8 (E2E Testing) — Runtime issues discovered
+## Current Status: 🟡 Phase 8 (E2E Testing) — I-003 resolved, remaining: TUI verification
 
 ### Session Log
 
@@ -29,6 +29,7 @@
 | 2025-01-13 | a17af0df | **Typecheck Fully Passing**: 19→0 errors. Disabled declaration emit (not needed for local deployment). I-004 resolved. |
 | 2025-01-13 | 47879faa | **I-005 Resolved**: Investigated vitest zod-openapi regression. Created `src/lib/z.ts` centralized wrapper (GPT5 consult). Tests: 41/46 passing. |
 | 2025-01-14 | 2d1dc6e2 | **I-002 Resolved**: Investigated EscapeNormalizedReplacer test failures. Root cause: replacer intentionally disabled in cf83e31. Disabled corresponding tests. Tests: 39/39 passing. |
+| 2025-01-14 | 644d2e91 | **I-003 Resolved**: Fixed Server.address() null issue with async callback pattern. Fixed secondary Response instanceof issue with duck typing. Server starts correctly, TUI launches. |
 
 ---
 
@@ -43,7 +44,7 @@
 | Phase 5: Publishing | ⏭️ Skipped | N/A |
 | Phase 6: Testing | 🟢 Complete | 100% |
 | Phase 7: Cleanup | 🟢 Complete | 100% |
-| Phase 8: E2E Testing | 🟡 In Progress | 20% |
+| Phase 8: E2E Testing | 🟡 In Progress | 50% |
 
 ---
 
@@ -171,7 +172,8 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 
 - [x] Fixed ResolveMessage error (Bun-specific type in index.ts)
 - [x] Fixed TUI resolution order (OPENCODE_TUI_PATH priority)
-- [ ] Fix Server.address() returning null (see I-003)
+- [x] Fix Server.address() returning null (I-003 resolved — async callback pattern)
+- [x] Fix Response instanceof issue (duck typing for Node.js native fetch)
 - [ ] Verify TUI launches correctly with built binary
 - [ ] Test full app flow: CLI → Server → TUI communication
 - [ ] Test `pnpm dev` flow with `go run`

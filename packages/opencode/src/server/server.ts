@@ -737,28 +737,43 @@ export namespace Server {
 
   // NO-BUN: replaced Bun.serve with @hono/node-server
   // Returns a compatible interface with hostname, port, url, and stop()
-  export function listen(opts: { port: number; hostname: string }) {
+  // NO-BUN: Changed from sync to async
+  // @hono/node-server's serve() returns immediately before the server is bound.
+  // We must use the listeningListener callback to get the actual address.
+  // Original Bun.serve() was synchronous and address was available immediately.
+  export async function listen(opts: { port: number; hostname: string }) {
     // // const server = Bun.serve({
     // //   port: opts.port,
     // //   hostname: opts.hostname,
     // //   idleTimeout: 0,
     // //   fetch: app().fetch,
     // // })
-    const nodeServer = serve({
-      fetch: app().fetch,
-      port: opts.port,
-      hostname: opts.hostname,
+    return new Promise<{
+      hostname: string
+      port: number
+      url: URL
+      stop: () => void
+    }>((resolve) => {
+      const nodeServer = serve(
+        {
+          fetch: app().fetch,
+          port: opts.port,
+          hostname: opts.hostname,
+        },
+        (info) => {
+          // Callback fires when server is actually listening
+          Log.Default.info("server listening", {
+            address: info.address,
+            port: info.port,
+          })
+          resolve({
+            hostname: info.address,
+            port: info.port,
+            url: new URL(`http://${info.address}:${info.port}`),
+            stop: () => nodeServer.close(),
+          })
+        }
+      )
     })
-
-    // Get actual address (port may be 0 for dynamic assignment)
-    const address = nodeServer.address() as AddressInfo
-
-    // Create Bun-compatible wrapper
-    return {
-      hostname: address.address,
-      port: address.port,
-      url: new URL(`http://${address.address}:${address.port}`),
-      stop: () => nodeServer.close(),
-    }
   }
 }
