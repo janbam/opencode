@@ -1,6 +1,7 @@
 import { Log } from "../util/log"
 import path from "path"
-import { z } from "zod"
+// NO-BUN: Import z from centralized module to ensure openapi extension is applied
+import { z } from "../util/zod"
 import { App } from "../app/app"
 import { Filesystem } from "../util/filesystem"
 import { ModelsDev } from "../provider/models"

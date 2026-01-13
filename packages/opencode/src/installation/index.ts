@@ -2,7 +2,8 @@ import path from "path"
 // NO-BUN: replaced $ from "bun" with compat/shell
 // // import { $ } from "bun"
 import { $ } from "../compat"
-import { z } from "zod"
+// NO-BUN: Import z from centralized module to ensure openapi extension is applied
+import { z } from "../util/zod"
 import { NamedError } from "../util/error"
 import { Bus } from "../bus"
 import { Log } from "../util/log"

@@ -6,7 +6,7 @@
 >
 > **SCOPE: Linux only, local deployment only, no publishing**
 
-## Current Status: 🟢 Phase 3 Complete
+## Current Status: 🟡 Phase 4 In Progress
 
 ### Session Log
 
@@ -19,6 +19,7 @@
 | 2025-01-13 | c3737d80 | **Medium files migrated**: format/*, lsp/*, installation, snapshot: 6 files |
 | 2025-01-13 | 83c9457d | **Phase 2 Complete**: All 33 files migrated - server.ts, tui.ts, run.ts, generate.ts, ui.ts, bun/index.ts |
 | 2025-01-13 | 3e7c41f8 | **Phase 3 Complete**: TUI resolver, .txt imports, zod-openapi fix, dev mode working |
+| 2025-01-13 | ff8f4cb8 | **Phase 4 Started**: Build script created, zod-openapi centralized, esbuild working (needs import resolution fix) |
 
 ---
 
@@ -29,7 +30,7 @@
 | Phase 1: Foundation Setup | 🟢 Complete | 100% |
 | Phase 2: API Replacements | 🟢 Complete | 100% |
 | Phase 3: TUI Integration | 🟢 Complete | 100% |
-| Phase 4: Build System | 🔴 Not Started | 0% |
+| Phase 4: Build System | 🟡 In Progress | 70% |
 | Phase 5: Publishing | ⏭️ Skipped | N/A |
 | Phase 6: Testing | 🔴 Not Started | 0% |
 | Phase 7: Cleanup | 🔴 Not Started | 0% |
@@ -128,8 +129,11 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 
 ### Phase 4: Build System (Linux Only)
 
-- [ ] esbuild config for bundling
-- [ ] Build script (`scripts/build.ts`)
+- [x] esbuild config for bundling
+- [x] Build script (`packages/opencode/script/build.ts`)
+- [x] Centralized zod export (`src/util/zod.ts`) for openapi extension in bundled output
+- [x] Go TUI build integrated into build script
+- [ ] **FIX NEEDED**: ESM import resolution for external packages (vscode-jsonrpc, etc.)
 - [ ] ~~SEA config~~ (skipped — using download approach)
 - [ ] ~~Cross-platform matrix~~ (skipped — Linux only)
 

@@ -1,4 +1,5 @@
-import { z } from "zod"
+// NO-BUN: Import z from centralized module to ensure openapi extension is applied
+import { z } from "../util/zod"
 import { Bus } from "../bus"
 // NO-BUN: Import $ from compat layer and file from compat
 // // import { $ } from "bun"

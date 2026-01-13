@@ -1,4 +1,5 @@
-import z from "zod"
+// NO-BUN: Import z from centralized module to ensure openapi extension is applied
+import { z } from "../util/zod"
 import { Bus } from "../bus"
 import { NamedError } from "../util/error"
 import { Message } from "./message"

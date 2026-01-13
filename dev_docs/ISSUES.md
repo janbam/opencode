@@ -7,7 +7,28 @@
 
 | ID | Severity | Area | Description | Notes |
 |----|----------|------|-------------|-------|
-| - | - | - | No issues yet | - |
+| I-001 | High | Build | ESM import resolution: bundled code fails with `Cannot find module 'vscode-jsonrpc/node'` | Need `.js` extension in imports for Node ESM |
+
+### I-001: ESM Import Resolution
+
+**Problem**: When running the bundled `dist/opencode.mjs`, Node.js ESM resolver fails:
+```
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'vscode-jsonrpc/node'
+Did you mean to import "vscode-jsonrpc/node.js"?
+```
+
+**Root Cause**: esbuild with `packages: "external"` doesn't add `.js` extensions to import paths, but Node.js ESM requires them.
+
+**GPT-5 Consultation Summary**:
+- Full bundling (all deps inline) doesn't work due to CJS→ESM conversion issues with dynamic requires
+- Partial bundling (`packages: external`) avoids CJS issues but has import resolution problems
+- Options:
+  1. **Run unbundled** - simplest, just use tsx in production
+  2. **Use esbuild plugin** to add `.js` extensions to imports
+  3. **Rollup** handles mixed ESM/CJS better
+  4. **Bundle to CJS** and remove top-level await
+
+**Recommended Next Step**: Either (a) run unbundled with tsx in production, or (b) investigate esbuild plugin to fix import paths.
 
 ## Resolved Issues
 

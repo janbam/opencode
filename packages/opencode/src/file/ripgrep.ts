@@ -2,7 +2,8 @@
 import path from "path"
 import { Global } from "../global"
 import fs from "fs/promises"
-import { z } from "zod"
+// NO-BUN: Import z from centralized module to ensure openapi extension is applied
+import { z } from "../util/zod"
 import { NamedError } from "../util/error"
 import { lazy } from "../util/lazy"
 // NO-BUN: Import from compat layer

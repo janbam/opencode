@@ -2,7 +2,8 @@ import path from "path"
 import fs from "fs/promises"
 import { createWriteStream } from "fs"
 import { Global } from "../global"
-import z from "zod"
+// NO-BUN: Import z from centralized module to ensure openapi extension is applied
+import { z } from "./zod"
 
 export namespace Log {
   export const Level = z.enum(["DEBUG", "INFO", "WARN", "ERROR"]).openapi({ ref: "LogLevel", description: "Log level" })

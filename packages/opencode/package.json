@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "dev": "bun run ./src/index.ts"
+    "dev": "tsx ./src/index.ts",
+    "build": "tsx ./script/build.ts"
   },
   "bin": {
     "opencode": "./bin/opencode"
