@@ -7,3 +7,4 @@ packages:
 # Allow esbuild to run its postinstall (needed for bundling)
 onlyBuiltDependencies:
   - esbuild
+  - sharp

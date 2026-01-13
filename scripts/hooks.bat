@@ -10,7 +10,7 @@ if not exist ".git\hooks" (
 
 (
     echo #!/bin/sh
-    echo bun run typecheck
+    echo pnpm typecheck
 ) > ".git\hooks\pre-push"
 
 echo ✅ Pre-push hook installed
