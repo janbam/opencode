@@ -2,7 +2,7 @@
 
 > Branch: `no-bun`
 > Target: Node.js 22+ LTS
-> Status: Planning Complete, Implementation Not Started
+> Status: ✅ Migration Complete
 >
 > **SCOPE: Linux only, local deployment only, no publishing**
 

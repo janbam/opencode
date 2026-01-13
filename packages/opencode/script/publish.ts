@@ -1,4 +1,7 @@
 #!/usr/bin/env bun
+// NO-BUN: This script is NOT maintained on the no-bun branch.
+// Publishing is out of scope (local deployment only).
+// The script remains for reference but will not work without Bun.
 
 import { $ } from "bun"
 

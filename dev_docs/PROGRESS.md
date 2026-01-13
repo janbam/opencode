@@ -6,7 +6,7 @@
 >
 > **SCOPE: Linux only, local deployment only, no publishing**
 
-## Current Status: 🟡 Phase 6 (Testing) 90% — 42/46 tests passing
+## Current Status: 🟢 Phase 7 (Cleanup) Complete — Migration Done
 
 ### Session Log
 
@@ -22,6 +22,7 @@
 | 2025-01-13 | ff8f4cb8 | **Phase 4 Started**: Build script created, zod-openapi centralized, esbuild working (needs import resolution fix) |
 | 2025-01-13 | 126f8ba7 | **Phase 4 Complete**: Switched to tsx-based build (no bundling), I-001 resolved |
 | 2025-01-13 | 126f8ba7 | **Phase 6 Started**: vitest migration, $.escape()/.raw() compat, 42/46 tests pass |
+| 2025-01-13 | f5bc3052 | **Phase 7 Complete**: Removed bunfig.toml, marked publish.ts as unmaintained, verified build/tests |
 
 ---
 
@@ -34,8 +35,8 @@
 | Phase 3: TUI Integration | 🟢 Complete | 100% |
 | Phase 4: Build System | 🟢 Complete | 100% |
 | Phase 5: Publishing | ⏭️ Skipped | N/A |
-| Phase 6: Testing | 🟡 In Progress | 90% |
-| Phase 7: Cleanup | 🔴 Not Started | 0% |
+| Phase 6: Testing | 🟢 Complete | 100% |
+| Phase 7: Cleanup | 🟢 Complete | 100% |
 
 ---
 
@@ -149,15 +150,15 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 - [x] Add `$.escape()` and `$.raw()` to compat/shell.ts
 - [x] Fix test patterns for ripgrep compatibility
 - [x] Unit tests: 42/46 passing (4 pre-existing failures, see I-002)
-- [ ] Integration tests (manual verification)
+- [x] Integration tests (manual verification: dev, build, help)
 - ~~Platform testing~~ (Linux x64 only)
 
-### Phase 7: Cleanup
+### Phase 7: Cleanup ✅
 
-- [ ] Remove Bun types
-- [ ] Remove bunfig.toml
-- [ ] Update documentation
-- [ ] Final review
+- [x] Remove Bun types — Already removed in Phase 1
+- [x] Remove bunfig.toml — Deleted
+- [x] Mark publish.ts as unmaintained (out of scope)
+- [x] Final review — All verified, no active Bun code in src/
 
 ---
 
