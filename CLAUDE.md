@@ -73,6 +73,10 @@ dev_docs/ISSUES.md
 - Update `dev_docs/ROADMAP.md` if needed
 - Commit all changes including dev_docs/
 
+IMPORTANT: Don't add additional backlogs, what has been done or what should be done next!!
+Only check off what has been done. The next instance will assess themselves what should be done next!
+Only use ultrayolo passover message when you have to end your session mid-task and the next instance needs critical information about open issues.
+
 ## Quick Reference
 
 | Bun API | Node.js Replacement |
@@ -100,7 +104,7 @@ You are running in **ultrayolo** mode. Work autonomously:
 - Test your changes
 - Commit working increments
 - Use `ultrayolo msg` for fresh turns on complex phases
-- Use `ultrayolo passover` when reaching context limits
+- Use `ultrayolo passover` early to start a fresh session to continue your work
 
 ## When In Doubt: Consult GPT5
 
@@ -112,18 +116,3 @@ You are running in **ultrayolo** mode. Work autonomously:
 
 Don't struggle alone — pair programming accelerates problem-solving.
 
-## Migration Stats
-
-- **114** Bun API usages
-- **33** files to modify
-- **7** phases total
-
-## Phase Order
-
-1. Foundation Setup (pnpm, deps)
-2. API Replacements (compat layer + file migrations)
-3. TUI Integration (SEA or download)
-4. Build System (esbuild, cross-platform)
-5. Publishing (npm, GitHub, Homebrew, AUR)
-6. Testing
-7. Cleanup

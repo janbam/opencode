@@ -13,7 +13,7 @@
 | Date | Session ID | Work Done |
 |------|------------|-----------|
 | 2025-01-13 | a148fa34 | Initial investigation, GPT-5 consultation, created dev_docs |
-| 2025-01-13 | 7d0f9a46 | **Phase 1 Complete**: pnpm workspace, deps, tsconfig |
+| 2025-01-13 | 7d0f9a46 | **Phase 1 Complete** + **Compat Layer Complete**: pnpm, deps, tsconfig, src/compat/* |
 
 ---
 
@@ -22,7 +22,7 @@
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Phase 1: Foundation Setup | 🟢 Complete | 100% |
-| Phase 2: API Replacements | 🔴 Not Started | 0% |
+| Phase 2: API Replacements | 🟡 In Progress | 30% |
 | Phase 3: TUI Integration | 🔴 Not Started | 0% |
 | Phase 4: Build System | 🔴 Not Started | 0% |
 | Phase 5: Publishing | 🔴 Not Started | 0% |
@@ -59,15 +59,16 @@
 
 ### Phase 2: API Replacements
 
-**Compatibility Layer:**
-- [ ] compat/file.ts
-- [ ] compat/spawn.ts
-- [ ] compat/glob.ts
-- [ ] compat/which.ts
-- [ ] compat/shell.ts
-- [ ] compat/stream.ts
-- [ ] compat/resolve.ts
-- [ ] compat/url.ts
+**Compatibility Layer: ✅ COMPLETE**
+- [x] compat/file.ts - File operations (Bun.file, Bun.write)
+- [x] compat/spawn.ts - Process spawning (Bun.spawn)
+- [x] compat/shell.ts - Shell template ($ from "bun")
+- [x] compat/which.ts - Executable lookup (Bun.which)
+- [x] compat/glob.ts - Glob patterns (Bun.Glob)
+- [x] compat/stream.ts - Stream utilities (readableStreamToText)
+- [x] compat/resolve.ts - Module resolution (Bun.resolve)
+- [x] compat/url.ts - URL utilities (Bun.fileURLToPath)
+- [x] compat/index.ts - Re-exports all modules
 
 **File Migrations (33 total):**
 
@@ -145,7 +146,7 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 
 ---
 
-## Blockers & Issues
+## Blockers, Issues and Concerns
 
 | Issue | Status | Resolution |
 |-------|--------|------------|
@@ -156,18 +157,29 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 ## Notes for Next Session
 
 ### Where to Start
-1. Begin with **Phase 2: API Replacements**
-2. Create the `src/compat/` compatibility layer first
-3. Start with `compat/file.ts` (most common API)
-4. Then migrate files one by one using the compat layer
+1. **Compat layer is ready** — all helpers in `src/compat/`
+2. Now migrate source files one by one
+3. Start with simpler files (tool/*.ts) before complex ones
+4. Use `NO-BUN` markers as documented in CLAUDE.md
 
-### Recommended Order for Phase 2
-1. `src/compat/file.ts` - File operations (Bun.file, Bun.write)
-2. `src/compat/spawn.ts` - Process spawning
-3. `src/compat/shell.ts` - Shell template ($)
-4. `src/compat/which.ts` - Executable lookup
-5. `src/compat/glob.ts` - Glob patterns
-6. Then migrate source files using these helpers
+### Recommended Migration Order
+Start with simpler tool files, build confidence, then tackle complex ones:
+
+1. **Easy** (single API replacement):
+   - `src/tool/read.ts` - Bun.file only
+   - `src/tool/write.ts` - Bun.file, Bun.write
+   - `src/tool/edit.ts` - Bun.file, Bun.write
+
+2. **Medium** (multiple APIs):
+   - `src/tool/bash.ts` - Bun.spawn
+   - `src/tool/grep.ts` - Bun.spawn, Bun.file
+   - `src/file/ripgrep.ts` - $, spawn
+   - `src/format/*.ts` - Bun.which, spawn
+
+3. **Complex** (critical/many APIs):
+   - `src/server/server.ts` - Bun.serve → @hono/node-server
+   - `src/cli/cmd/tui.ts` - embeddedFiles, spawn (needs TUI download logic)
+   - `src/bun/index.ts` - may be removed entirely
 
 ### Key Decisions Made
 - Using `tsx` for development
