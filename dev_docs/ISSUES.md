@@ -10,6 +10,7 @@
 | I-002 | Low | Tests | 4 edit.test.ts failures (EscapeNormalizedReplacer) | Pre-existing logic bug, not migration-related |
 | I-003 | High | Runtime | Server.address() returns null on startup | Blocks TUI launch, needs investigation |
 | ~~I-004~~ | ~~Low~~ | ~~Types~~ | ~~19 pnpm type inference errors~~ | **RESOLVED**: disabled declaration emit |
+| I-005 | Medium | Tests | vitest fails: zod-openapi extension not loaded | setupFiles runs after module resolution |
 
 ### I-003: Server.address() Returns Null
 
@@ -43,6 +44,27 @@ Affected tests (in `packages/opencode/test/tool/edit.test.ts`):
 - case 22: Backslash path handling
 
 **Status**: Low priority. Does not affect core functionality.
+
+### I-005: vitest zod-openapi Extension Not Loaded
+
+**Symptom:** Tests fail with `TypeError: z.enum(...).openapi is not a function`
+
+**Error location:** `src/util/log.ts:8` — first file to use `.openapi()` method
+
+**Root cause:** The `zod-openapi/extend` import mutates the zod prototype to add `.openapi()`. In the app, this is done in `src/index.ts` before any other imports. But vitest resolves all modules before running `setupFiles`, so by the time `test/setup.ts` runs, `log.ts` has already failed to import.
+
+**Attempted fixes:**
+- `setupFiles: ["./test/setup.ts"]` — runs too late (after module resolution)
+- `globalSetup` — runs in separate process, doesn't affect test process
+- `deps.interopDefault: true` — no effect
+
+**Potential solutions:**
+1. Move `import "zod-openapi/extend"` to a file that's imported before `log.ts` in the dependency graph
+2. Use vitest's `deps.optimizer` or `deps.inline` to force extension loading
+3. Create a separate entry point for tests that imports extend first
+4. Investigate vitest's `pool: 'forks'` which may have different module loading
+
+**Status:** Medium priority. Tests were working in earlier sessions (42/46 passing per PROGRESS.md), so something changed. Needs investigation of what broke.
 
 ## Resolved Issues
 
