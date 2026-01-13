@@ -14,7 +14,7 @@
 |------|------------|-----------|
 | 2025-01-13 | a148fa34 | Initial investigation, GPT-5 consultation, created dev_docs |
 | 2025-01-13 | 7d0f9a46 | **Phase 1 Complete** + **Compat Layer Complete**: pnpm, deps, tsconfig, src/compat/* |
-| 2025-01-13 | 8bae2780 | **All tool files migrated**: bash, edit, write, read, grep, glob, ls |
+| 2025-01-13 | 8bae2780 | **All tool files migrated** + **All file/* migrated**: 11 files total |
 
 ---
 
@@ -23,7 +23,7 @@
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Phase 1: Foundation Setup | 🟢 Complete | 100% |
-| Phase 2: API Replacements | 🟡 In Progress | 50% |
+| Phase 2: API Replacements | 🟡 In Progress | 65% |
 | Phase 3: TUI Integration | 🔴 Not Started | 0% |
 | Phase 4: Build System | 🔴 Not Started | 0% |
 | Phase 5: Publishing | 🔴 Not Started | 0% |
@@ -82,6 +82,10 @@
 | src/tool/grep.ts | 🟢 | spawn → compat, stat → fs/promises |
 | src/tool/glob.ts | 🟢 | stat → fs/promises |
 | src/tool/ls.ts | 🟢 | Glob, minimatch → compat |
+| src/file/ripgrep.ts | 🟢 | $, which, file, write, spawn → compat |
+| src/file/fzf.ts | 🟢 | which, file, write, spawn → compat |
+| src/file/index.ts | 🟢 | $, file → compat |
+| src/file/time.ts | 🟢 | stat → fs/promises |
 | src/server/server.ts | 🔴 | serve |
 | src/session/index.ts | 🔴 | file |
 | src/session/system.ts | 🔴 | file |
@@ -92,10 +96,6 @@
 | src/cli/ui.ts | 🔴 | TBD |
 | src/lsp/server.ts | 🔴 | $, which, spawn, file |
 | src/lsp/client.ts | 🔴 | file |
-| src/file/ripgrep.ts | 🔴 | $ |
-| src/file/fzf.ts | 🔴 | which, file |
-| src/file/index.ts | 🔴 | $, file |
-| src/file/time.ts | 🔴 | file |
 | src/format/formatter.ts | 🔴 | which |
 | src/format/index.ts | 🔴 | spawn |
 | src/app/app.ts | 🔴 | file, write |

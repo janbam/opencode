@@ -33,6 +33,9 @@ export interface ShellCommand {
   /** Don't throw on non-zero exit code */
   throws(shouldThrow: boolean): ShellCommand
 
+  /** Don't throw on non-zero exit code (Bun API alias for throws(false)) */
+  nothrow(): ShellCommand
+
   /** Suppress output (quiet mode) */
   quiet(): ShellCommand
 
@@ -104,6 +107,13 @@ function createShellCommand(strings: TemplateStringsArray, values: unknown[], op
       return createShellCommand(strings, values, {
         ...opts,
         shouldThrow,
+      })
+    },
+
+    nothrow(): ShellCommand {
+      return createShellCommand(strings, values, {
+        ...opts,
+        shouldThrow: false,
       })
     },
 

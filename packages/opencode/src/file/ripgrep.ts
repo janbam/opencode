@@ -5,7 +5,9 @@ import fs from "fs/promises"
 import { z } from "zod"
 import { NamedError } from "../util/error"
 import { lazy } from "../util/lazy"
-import { $ } from "bun"
+// NO-BUN: Import from compat layer
+// // import { $ } from "bun"
+import { $, which, file, write, spawn, readableStreamToText } from "../compat"
 import { Fzf } from "./fzf"
 
 export namespace Ripgrep {
@@ -122,12 +124,16 @@ export namespace Ripgrep {
   )
 
   const state = lazy(async () => {
-    let filepath = Bun.which("rg")
+    // NO-BUN: replaced Bun.which with compat which
+    // // let filepath = Bun.which("rg")
+    let filepath = await which("rg")
     if (filepath) return { filepath }
     filepath = path.join(Global.Path.bin, "rg" + (process.platform === "win32" ? ".exe" : ""))
 
-    const file = Bun.file(filepath)
-    if (!(await file.exists())) {
+    // NO-BUN: replaced Bun.file with compat file
+    // // const file = Bun.file(filepath)
+    const fileHandle = file(filepath)
+    if (!(await fileHandle.exists())) {
       const platformKey = `${process.arch}-${process.platform}` as keyof typeof PLATFORM
       const config = PLATFORM[platformKey]
       if (!config) throw new UnsupportedPlatformError({ platform: platformKey })
@@ -141,14 +147,23 @@ export namespace Ripgrep {
 
       const buffer = await response.arrayBuffer()
       const archivePath = path.join(Global.Path.bin, filename)
-      await Bun.write(archivePath, buffer)
+      // NO-BUN: replaced Bun.write with compat write
+      // // await Bun.write(archivePath, buffer)
+      await write(archivePath, buffer)
       if (config.extension === "tar.gz") {
         const args = ["tar", "-xzf", archivePath, "--strip-components=1"]
 
         if (platformKey.endsWith("-darwin")) args.push("--include=*/rg")
         if (platformKey.endsWith("-linux")) args.push("--wildcards", "*/rg")
 
-        const proc = Bun.spawn(args, {
+        // NO-BUN: replaced Bun.spawn with compat spawn
+        // // const proc = Bun.spawn(args, {
+        // //   cwd: Global.Path.bin,
+        // //   stderr: "pipe",
+        // //   stdout: "pipe",
+        // // })
+        const proc = spawn({
+          cmd: args,
           cwd: Global.Path.bin,
           stderr: "pipe",
           stdout: "pipe",
@@ -157,11 +172,20 @@ export namespace Ripgrep {
         if (proc.exitCode !== 0)
           throw new ExtractionFailedError({
             filepath,
-            stderr: await Bun.readableStreamToText(proc.stderr),
+            // NO-BUN: use proc.stderrText() instead of Bun.readableStreamToText
+            // // stderr: await Bun.readableStreamToText(proc.stderr),
+            stderr: await proc.stderrText(),
           })
       }
       if (config.extension === "zip") {
-        const proc = Bun.spawn(["unzip", "-j", archivePath, "*/rg.exe", "-d", Global.Path.bin], {
+        // NO-BUN: replaced Bun.spawn with compat spawn
+        // // const proc = Bun.spawn(["unzip", "-j", archivePath, "*/rg.exe", "-d", Global.Path.bin], {
+        // //   cwd: Global.Path.bin,
+        // //   stderr: "pipe",
+        // //   stdout: "ignore",
+        // // })
+        const proc = spawn({
+          cmd: ["unzip", "-j", archivePath, "*/rg.exe", "-d", Global.Path.bin],
           cwd: Global.Path.bin,
           stderr: "pipe",
           stdout: "ignore",
@@ -170,7 +194,9 @@ export namespace Ripgrep {
         if (proc.exitCode !== 0)
           throw new ExtractionFailedError({
             filepath: archivePath,
-            stderr: await Bun.readableStreamToText(proc.stderr),
+            // NO-BUN: use proc.stderrText() instead of Bun.readableStreamToText
+            // // stderr: await Bun.readableStreamToText(proc.stderr),
+            stderr: await proc.stderrText(),
           })
       }
       await fs.unlink(archivePath)

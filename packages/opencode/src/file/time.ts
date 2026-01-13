@@ -1,3 +1,5 @@
+// NO-BUN: Import stat from fs/promises for mtime check
+import { stat } from "node:fs/promises"
 import { App } from "../app/app"
 import { Log } from "../util/log"
 
@@ -28,7 +30,9 @@ export namespace FileTime {
   export async function assert(sessionID: string, filepath: string) {
     const time = get(sessionID, filepath)
     if (!time) throw new Error(`You must read the file ${filepath} before overwriting it. Use the Read tool first`)
-    const stats = await Bun.file(filepath).stat()
+    // NO-BUN: replaced Bun.file().stat() with fs/promises stat
+    // // const stats = await Bun.file(filepath).stat()
+    const stats = await stat(filepath)
     if (stats.mtime.getTime() > time.getTime()) {
       throw new Error(
         `File ${filepath} has been modified since it was last read.\nLast modification: ${stats.mtime.toISOString()}\nLast read: ${time.toISOString()}\n\nPlease read the file again before modifying it.`,

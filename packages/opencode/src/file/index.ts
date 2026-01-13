@@ -1,6 +1,8 @@
 import { z } from "zod"
 import { Bus } from "../bus"
-import { $ } from "bun"
+// NO-BUN: Import $ from compat layer and file from compat
+// // import { $ } from "bun"
+import { $, file } from "../compat"
 import { createPatch } from "diff"
 import path from "path"
 import * as git from "isomorphic-git"
@@ -60,7 +62,9 @@ export namespace File {
       const untrackedFiles = untrackedOutput.trim().split("\n")
       for (const filepath of untrackedFiles) {
         try {
-          const content = await Bun.file(path.join(app.path.root, filepath)).text()
+          // NO-BUN: replaced Bun.file with compat layer file
+          // // const content = await Bun.file(path.join(app.path.root, filepath)).text()
+          const content = await file(path.join(app.path.root, filepath)).text()
           const lines = content.split("\n").length
           changedFiles.push({
             path: filepath,
@@ -95,11 +99,16 @@ export namespace File {
     }))
   }
 
-  export async function read(file: string) {
-    using _ = log.time("read", { file })
+  export async function read(filePath: string) {
+    using _ = log.time("read", { file: filePath })
     const app = App.info()
-    const full = path.join(app.path.cwd, file)
-    const content = await Bun.file(full)
+    const full = path.join(app.path.cwd, filePath)
+    // NO-BUN: replaced Bun.file with compat layer file
+    // // const content = await Bun.file(full)
+    // //   .text()
+    // //   .catch(() => "")
+    // //   .then((x) => x.trim())
+    const content = await file(full)
       .text()
       .catch(() => "")
       .then((x) => x.trim())
@@ -112,7 +121,7 @@ export namespace File {
       })
       if (diff !== "unmodified") {
         const original = await $`git show HEAD:${rel}`.cwd(app.path.root).quiet().nothrow().text()
-        const patch = createPatch(file, original, content, "old", "new", {
+        const patch = createPatch(filePath, original, content, "old", "new", {
           context: Infinity,
         })
         return { type: "patch", content: patch }
