@@ -1,123 +1,55 @@
-# opencode: Bun → Node.js Migration
+# opencode: Node.js Version
 
 **Branch:** `no-bun`
-**Goal:** Remove all Bun dependencies, run on Node.js 22+
+**Status:** ✅ Migration Complete — runs on Node.js 22+
 
-## IMPORTANT Scope Constraints
+## Current State
 
-1. **Linux only** — This migration targets Linux exclusively. No Windows, no macOS.
-2. **Local deployment only** — Will only run on this local machine. No npm publishing, no GitHub releases, no Homebrew/AUR.
-3. **Avoid unnecessary complexity** — Skip cross-platform concerns, signing, SEA embedding, etc.
+- All Bun dependencies removed
+- 33 files migrated to Node.js equivalents
+- Compat layer at `src/compat/` provides drop-in replacements
+- Build: `pnpm build` (tsx-based, ~1s)
+- Dev: `pnpm dev` (tsx watch mode)
+- Tests: 42/46 passing (4 pre-existing failures in I-002)
+
+## Scope Constraints (unchanged)
+
+1. **Linux only** — No Windows, no macOS
+2. **Local deployment only** — No npm publishing, no GitHub releases
+3. **Simple approach** — tsx for both dev and prod (no bundling)
 
 ## Code Convention: NO-BUN Markers
 
-When replacing Bun API code:
+Original Bun code is preserved as comments with `// NO-BUN:` markers:
 ```typescript
 // NO-BUN: replaced Bun.file/Bun.write with fs/promises
 // // const file = Bun.file(filepath);
-// // if (await file.exists()) { ... }
-// // await Bun.write(filepath, content);
 const content = await readFile(filepath, 'utf8');
-await writeFile(filepath, content);
 ```
-
-**Always:**
-- Add `// NO-BUN: <brief explanation>` comment before replacement
-- Keep original Bun code as comments (for reference/reverting)
-- New code follows immediately after
-
-## Session Workflow
-
-### Keep Sessions Short
-
-**Default: Pass over early.** Don't stretch sessions to complete everything.
-
-- If a task spans multiple files/locations, it's fine to pass over mid-task
-- The next Claude instance will pick up exactly where you left off
-- Only extend a session if you're working on something that **must not be left open** (e.g., broken build, incomplete refactor that breaks tests)
-
-### Decision Points
-
-When you reach a point in the ROADMAP where a **decision needs to be made**:
-
-1. **Dedicate the session to research** — don't rush into implementation
-2. Think through options, trade-offs, implications
-3. **Document your decision** in both ROADMAP.md and PROGRESS.md
-4. Hand off — implementation starts next session
-
-One decision per session is fine. Decisions deserve focused attention.
-
----
-
-## Session Protocol
-
-### Start of Session
-
-# 1. Verify branch
-git branch --show-current  # must be: no-bun
-
-# 2. Read current state
-dev_docs/PROGRESS.md
-dev_docs/ROADMAP.md
-dev_docs/ISSUES.md
-
-
-### During Session
-- Pick the next uncompleted task from PROGRESS.md
-- Keep your TodoWrite list short! When your todos are completed and you're still under 100k context, you can add new ones
-- Reference `dev_docs/bun-api-replacements.md` for API mappings
-- Reference `dev_docs/migration-architecture.md` for build/architecture decisions
-- Test changes before marking complete
-
-### End of Session
-- Update `dev_docs/PROGRESS.md` with completed tasks
-- Update `dev_docs/ROADMAP.md` if needed
-- Commit all changes including dev_docs/
-
-IMPORTANT: Don't add additional backlogs, what has been done or what should be done next!!
-Only check off what has been done. The next instance will assess themselves what should be done next!
-Only use ultrayolo passover message when you have to end your session mid-task and the next instance needs critical information about open issues.
-
-**NO** "Notes for next session" or "Next Up" in PROGRESS.md or anywhere else!
-
-## Quick Reference
-
-| Bun API | Node.js Replacement |
-|---------|---------------------|
-| `Bun.file()` / `Bun.write()` | `fs/promises` |
-| `Bun.spawn()` | `execa` |
-| `Bun.Glob` | `glob` + `minimatch` |
-| `Bun.which()` | `which` package |
-| `Bun.serve()` | `@hono/node-server` |
-| `$ from "bun"` | `execa.$` |
-| `Bun.embeddedFiles` | Download TUI on first run (no SEA) |
 
 ## Key Files
 
-- `dev_docs/PROGRESS.md` — Task tracker (update every session)
-- `dev_docs/ROADMAP.md` — Full migration plan
-- `dev_docs/ISSUES.md` — **Update immediately when issues arise**
-- `dev_docs/bun-api-replacements.md` — Code examples for each API
-- `dev_docs/migration-architecture.md` — Build system, SEA, pnpm
+- `dev_docs/PROGRESS.md` — Migration history and completion status
+- `dev_docs/ISSUES.md` — Known issues (I-002: 4 pre-existing test failures)
+- `src/compat/` — Node.js compatibility layer
 
-## Autonomous Mode
+## API Mappings Reference
 
-You are running in **ultrayolo** mode. Work autonomously:
-- Don't ask for confirmation on standard migration tasks
-- Test your changes
-- Commit working increments
-- Use `ultrayolo msg` for fresh turns on complex phases
-- Use `ultrayolo passover` early to start a fresh session to continue your work
-- A SHORT session (<120k context) is ALWAYS BETTER than a long session!!!
-- You DON'T need to complete all of your TodoWrite items in your session, the next instance will pick up automatically!
+| Bun API | Node.js Replacement |
+|---------|---------------------|
+| `Bun.file()` / `Bun.write()` | `src/compat/file.ts` |
+| `Bun.spawn()` | `src/compat/spawn.ts` (execa) |
+| `Bun.Glob` | `src/compat/glob.ts` |
+| `Bun.which()` | `src/compat/which.ts` |
+| `Bun.serve()` | `@hono/node-server` |
+| `$ from "bun"` | `src/compat/shell.ts` (execa.$) |
+| `Bun.embeddedFiles` | `src/tui/index.ts` (binary lookup) |
 
-## When In Doubt: Consult GPT5
+## Commands
 
-**GPT5 is your pair programmer.** When you're stuck, uncertain, or hitting issues that aren't easily resolved:
-
-- Use `mcp__GPT5__chat` to consult GPT5
-- Share the problem context, code snippets, error messages
-- GPT5 can help debug, suggest approaches, sanity-check solutions
-
-Don't struggle alone — pair programming accelerates problem-solving.
-
+```bash
+pnpm dev          # Development mode (tsx watch)
+pnpm build        # Build TUI binary + launcher
+pnpm test         # Run tests (vitest)
+./dist/opencode   # Run built version
+```
