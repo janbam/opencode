@@ -6,14 +6,15 @@
 ## Session Protocol
 
 ### Start of Session
-```bash
+
 # 1. Verify branch
 git branch --show-current  # must be: no-bun
 
 # 2. Read current state
-cat dev_docs/PROGRESS.md
-cat dev_docs/ROADMAP.md
-```
+dev_docs/PROGRESS.md
+dev_docs/ROADMAP.md
+dev_docs/ISSUES.md
+
 
 ### During Session
 - Pick the next uncompleted task from PROGRESS.md
