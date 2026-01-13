@@ -7,9 +7,15 @@
 
 | ID | Severity | Area | Description | Notes |
 |----|----------|------|-------------|-------|
-| I-001 | High | Build | ESM import resolution: bundled code fails with `Cannot find module 'vscode-jsonrpc/node'` | Need `.js` extension in imports for Node ESM |
+| - | - | - | - | - |
 
-### I-001: ESM Import Resolution
+## Resolved Issues
+
+| ID | Area | Description | Resolution |
+|----|------|-------------|------------|
+| I-001 | Build | ESM import resolution in bundled code | **Resolved**: Switched to tsx-based production build — no bundling needed |
+
+### I-001: ESM Import Resolution (RESOLVED)
 
 **Problem**: When running the bundled `dist/opencode.mjs`, Node.js ESM resolver fails:
 ```
@@ -19,22 +25,11 @@ Did you mean to import "vscode-jsonrpc/node.js"?
 
 **Root Cause**: esbuild with `packages: "external"` doesn't add `.js` extensions to import paths, but Node.js ESM requires them.
 
-**GPT-5 Consultation Summary**:
-- Full bundling (all deps inline) doesn't work due to CJS→ESM conversion issues with dynamic requires
-- Partial bundling (`packages: external`) avoids CJS issues but has import resolution problems
-- Options:
-  1. **Run unbundled** - simplest, just use tsx in production
-  2. **Use esbuild plugin** to add `.js` extensions to imports
-  3. **Rollup** handles mixed ESM/CJS better
-  4. **Bundle to CJS** and remove top-level await
-
-**Recommended Next Step**: Either (a) run unbundled with tsx in production, or (b) investigate esbuild plugin to fix import paths.
-
-## Resolved Issues
-
-| ID | Area | Description | Resolution |
-|----|------|-------------|------------|
-| - | - | - | - |
+**Resolution**: Given the project constraints (Linux only, local deployment only), bundling complexity isn't justified. Switched to tsx-based production build:
+- Build script now only builds Go TUI binary
+- Launcher script uses `npx tsx` to run TypeScript source directly
+- Bypasses all ESM bundling complexity
+- Works perfectly, 1-second build time
 
 ---
 

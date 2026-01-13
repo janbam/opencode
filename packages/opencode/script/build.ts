@@ -1,18 +1,19 @@
 #!/usr/bin/env tsx
 /**
- * Build script for opencode
+ * Build script for opencode (Linux local deployment)
  *
  * NO-BUN: Replaces the Bun-based publish.ts with a Node.js-compatible build
  *
  * What this does:
- * 1. Bundles TypeScript with esbuild → dist/opencode.cjs
- * 2. Builds the Go TUI → dist/tui
- * 3. Creates a launcher script → dist/opencode
+ * 1. Builds the Go TUI → dist/tui
+ * 2. Creates a launcher script → dist/opencode
+ *
+ * The launcher uses tsx to run the source TypeScript directly.
+ * This bypasses all ESM bundling complexity while working perfectly.
  *
  * Scope: Linux x64 only, local deployment
  */
 
-import * as esbuild from "esbuild"
 import { execSync } from "child_process"
 import { mkdir, writeFile, chmod, rm } from "fs/promises"
 import { existsSync } from "fs"
@@ -33,45 +34,6 @@ async function getVersion(): Promise<string> {
   } catch {
     return "0.0.0-dev"
   }
-}
-
-// Build the TypeScript bundle with esbuild
-async function buildJS(version: string): Promise<void> {
-  console.log("📦 Bundling TypeScript...")
-
-  await esbuild.build({
-    entryPoints: [path.join(packageDir, "src/index.ts")],
-    bundle: true,
-    platform: "node",
-    target: "node22",
-    format: "esm",
-    outfile: path.join(distDir, "opencode.mjs"),
-    minify: true,
-    sourcemap: false,
-    // Inline .txt files as strings
-    loader: {
-      ".txt": "text",
-    },
-    // Define version constant
-    define: {
-      "process.env.OPENCODE_VERSION": JSON.stringify(version),
-    },
-    // Keep all npm packages external to avoid CJS→ESM conversion issues
-    // This prevents "Dynamic require" errors while still bundling our code
-    packages: "external",
-    // Prefer ESM entry points from deps
-    mainFields: ["module", "main"],
-    conditions: ["node", "import"],
-    // Banner with shebang for direct execution
-    banner: {
-      js: "#!/usr/bin/env node",
-    },
-  })
-
-  // Make the bundle executable
-  await chmod(path.join(distDir, "opencode.mjs"), 0o755)
-
-  console.log("✅ Bundle created: dist/opencode.mjs")
 }
 
 // Build the Go TUI binary
@@ -99,18 +61,29 @@ async function buildTUI(version: string): Promise<void> {
   console.log("✅ TUI built: dist/tui")
 }
 
-// Create launcher script
+// Create launcher script that uses tsx to run source directly
 async function createLauncher(): Promise<void> {
   console.log("📝 Creating launcher script...")
 
+  // Find paths relative to where the script will be installed
   const launcher = `#!/bin/sh
-# opencode launcher - runs the bundled Node.js application
-# The TUI binary is expected to be in the same directory
+# opencode launcher - runs TypeScript source via tsx
+# NO-BUN: Uses tsx instead of bundling to avoid ESM complexity
+
+set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Set TUI path to the built binary
 export OPENCODE_TUI_PATH="\${SCRIPT_DIR}/tui"
 
-exec node "\${SCRIPT_DIR}/opencode.mjs" "$@"
+# The source is in ../src relative to dist/
+# For local deployment, we know the repo structure
+PACKAGE_DIR="$(cd "\${SCRIPT_DIR}/.." && pwd)"
+ENTRY_POINT="\${PACKAGE_DIR}/src/index.ts"
+
+# Use tsx to run the TypeScript directly
+exec npx tsx "\${ENTRY_POINT}" "$@"
 `
 
   await writeFile(path.join(distDir, "opencode"), launcher)
@@ -123,7 +96,7 @@ exec node "\${SCRIPT_DIR}/opencode.mjs" "$@"
 async function main(): Promise<void> {
   const startTime = Date.now()
 
-  console.log("🚀 Starting opencode build (Linux x64)\n")
+  console.log("🚀 Starting opencode build (Linux x64, tsx-based)\n")
 
   // Clean dist directory
   if (existsSync(distDir)) {
@@ -135,16 +108,14 @@ async function main(): Promise<void> {
   console.log(`📋 Version: ${version}\n`)
 
   // Run build steps
-  await buildJS(version)
   await buildTUI(version)
   await createLauncher()
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
   console.log(`\n✨ Build complete in ${elapsed}s`)
   console.log(`\n📁 Output: ${distDir}`)
-  console.log("   - opencode      (launcher script)")
-  console.log("   - opencode.mjs  (bundled JS)")
-  console.log("   - tui           (Go binary)")
+  console.log("   - opencode  (launcher script)")
+  console.log("   - tui       (Go binary)")
   console.log("\nRun with: ./dist/opencode")
 }
 
