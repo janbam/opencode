@@ -6,7 +6,7 @@
 >
 > **SCOPE: Linux only, local deployment only, no publishing**
 
-## Current Status: 🟢 Phase 2 Complete
+## Current Status: 🟢 Phase 3 Complete
 
 ### Session Log
 
@@ -18,6 +18,7 @@
 | 2025-01-13 | aff02b35 | **All easy file migrations**: session, auth, config, util, storage, global, app, provider: 12 files |
 | 2025-01-13 | c3737d80 | **Medium files migrated**: format/*, lsp/*, installation, snapshot: 6 files |
 | 2025-01-13 | 83c9457d | **Phase 2 Complete**: All 33 files migrated - server.ts, tui.ts, run.ts, generate.ts, ui.ts, bun/index.ts |
+| 2025-01-13 | 3e7c41f8 | **Phase 3 Complete**: TUI resolver, .txt imports, zod-openapi fix, dev mode working |
 
 ---
 
@@ -27,7 +28,7 @@
 |-------|--------|----------|
 | Phase 1: Foundation Setup | 🟢 Complete | 100% |
 | Phase 2: API Replacements | 🟢 Complete | 100% |
-| Phase 3: TUI Integration | 🔴 Not Started | 0% |
+| Phase 3: TUI Integration | 🟢 Complete | 100% |
 | Phase 4: Build System | 🔴 Not Started | 0% |
 | Phase 5: Publishing | ⏭️ Skipped | N/A |
 | Phase 6: Testing | 🔴 Not Started | 0% |
@@ -116,13 +117,14 @@
 
 Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 
-### Phase 3: TUI Integration (Download Approach)
+### Phase 3: TUI Integration ✅
 
-- [x] ~~Decide on approach~~ → **Download on first run** (decided)
-- [ ] Implement TUI downloader (`src/tui/downloader.ts`)
-- [ ] Test TUI download and caching
-- [ ] Test TUI execution
-- [ ] Test backend communication
+- [x] ~~Decide on approach~~ → **Local resolution** (dev mode uses `go run`, prod looks for built binary)
+- [x] Implement TUI resolver (`src/tui/index.ts`) — resolves binary from multiple locations
+- [x] Replace Bun's `.txt` imports with `loadText()` helper (`src/compat/text.ts`)
+- [x] Fix zod-openapi extension loading (explicit `extendZodWithOpenApi()` call)
+- [x] Fix `exists` import (use compat instead of fs/promises)
+- [x] Test dev mode execution — `pnpm dev` works with TUI via `go run`
 
 ### Phase 4: Build System (Linux Only)
 
@@ -171,6 +173,9 @@ All Bun API usages have been replaced:
 - `Bun.stdin.text()` → node:stream/consumers
 - `Bun.stderr.write` → process.stderr.write
 - `Bun.color()` → ANSI escape codes
+- `Bun.embeddedFiles` → src/tui/index.ts resolver (dev: go run, prod: binary lookup)
+- `.txt` imports → compat/text.ts `loadText()` helper
+- Bun macro imports → regular imports (models-macro.ts)
 
 ### Key Decisions Made
 - Using `tsx` for development
@@ -198,4 +203,6 @@ All Bun API usages have been replaced:
 | `readableStreamToText` | `node:stream/consumers` |
 | `Bun.resolve()` | `createRequire().resolve()` |
 | `Bun.fileURLToPath()` | `url.fileURLToPath()` |
-| `Bun.embeddedFiles` | `node:sea` assets |
+| `Bun.embeddedFiles` | TUI resolver (dev: go run, prod: binary) |
+| `.txt` imports | `loadText()` from compat/text.ts |
+| Bun macros | Regular function calls |

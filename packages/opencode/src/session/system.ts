@@ -6,13 +6,18 @@ import { Config } from "../config/config"
 import path from "path"
 import os from "os"
 // NO-BUN: replaced Bun.file with compat/file
-import { file } from "../compat/file"
-
-import PROMPT_ANTHROPIC from "./prompt/anthropic.txt"
-import PROMPT_BEAST from "./prompt/beast.txt"
-import PROMPT_ANTHROPIC_SPOOF from "./prompt/anthropic_spoof.txt"
-import PROMPT_SUMMARIZE from "./prompt/summarize.txt"
-import PROMPT_TITLE from "./prompt/title.txt"
+import { file, loadText } from "../compat"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import PROMPT_ANTHROPIC from "./prompt/anthropic.txt"
+// // import PROMPT_BEAST from "./prompt/beast.txt"
+// // import PROMPT_ANTHROPIC_SPOOF from "./prompt/anthropic_spoof.txt"
+// // import PROMPT_SUMMARIZE from "./prompt/summarize.txt"
+// // import PROMPT_TITLE from "./prompt/title.txt"
+const PROMPT_ANTHROPIC = loadText("./prompt/anthropic.txt", import.meta.url)
+const PROMPT_BEAST = loadText("./prompt/beast.txt", import.meta.url)
+const PROMPT_ANTHROPIC_SPOOF = loadText("./prompt/anthropic_spoof.txt", import.meta.url)
+const PROMPT_SUMMARIZE = loadText("./prompt/summarize.txt", import.meta.url)
+const PROMPT_TITLE = loadText("./prompt/title.txt", import.meta.url)
 
 export namespace SystemPrompt {
   export function provider(providerID: string, modelID: string) {

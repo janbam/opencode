@@ -1,5 +1,8 @@
 import { Tool } from "./tool"
-import DESCRIPTION from "./task.txt"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import DESCRIPTION from "./task.txt"
+import { loadText } from "../compat"
+const DESCRIPTION = loadText("./task.txt", import.meta.url)
 import { z } from "zod"
 import { Session } from "../session"
 import { Bus } from "../bus"

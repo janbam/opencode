@@ -2,9 +2,10 @@ import { z } from "zod"
 import { Tool } from "./tool"
 import { App } from "../app/app"
 import * as path from "path"
-import DESCRIPTION from "./ls.txt"
-// NO-BUN: Import Glob from compat layer
-import { Glob, minimatch } from "../compat"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import DESCRIPTION from "./ls.txt"
+import { Glob, minimatch, loadText } from "../compat"
+const DESCRIPTION = loadText("./ls.txt", import.meta.url)
 
 export const IGNORE_PATTERNS = [
   "node_modules/",

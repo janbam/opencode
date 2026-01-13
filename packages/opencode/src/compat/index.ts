@@ -36,3 +36,6 @@ export { fileURLToPath, pathToFileURL } from "./url"
 
 // Module resolution (Bun.resolve)
 export { resolve, resolveSync } from "./resolve"
+
+// Text file loading (Bun's .txt import support)
+export { loadText } from "./text"

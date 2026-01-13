@@ -1,20 +1,19 @@
-import { Global } from "../../global"
+import path from "path"
 import { Provider } from "../../provider/provider"
 import { Server } from "../../server/server"
 import { bootstrap } from "../bootstrap"
 import { UI } from "../ui"
 import { cmd } from "./cmd"
-import path from "path"
-import fs from "fs/promises"
 import { Installation } from "../../installation"
 import { Config } from "../../config/config"
 import { Bus } from "../../bus"
 import { Log } from "../../util/log"
 import { FileWatcher } from "../../file/watch"
 import { Mode } from "../../session/mode"
-// NO-BUN: added compat imports for spawn and url
+// NO-BUN: added compat imports for spawn
 import { spawn } from "../../compat/spawn"
-import { fileURLToPath } from "../../compat/url"
+// NO-BUN: TUI resolution now handled by src/tui/index.ts
+import { resolveTui } from "../../tui"
 
 export const TuiCommand = cmd({
   command: "$0 [project]",
@@ -60,43 +59,34 @@ export const TuiCommand = cmd({
           hostname: "127.0.0.1",
         })
 
-        // NO-BUN: replaced Bun.fileURLToPath with compat, Bun.spawn with compat
-        // // let cwd = Bun.fileURLToPath(new URL("../../../../tui/cmd/opencode", import.meta.url))
-        let tuiCmd = ["go", "run", "./main.go"]
-        let tuiCwd = fileURLToPath(new URL("../../../../tui/cmd/opencode", import.meta.url))
-
-        // TODO: Phase 3 - TUI Download Approach
-        // In Bun SEA builds, the TUI binary was embedded. For Node.js, we'll download it on first run.
-        // For now, dev mode uses `go run` which works without the embedded binary.
-        // The download logic will go here in Phase 3 (see dev_docs/ROADMAP.md Phase 3)
+        // NO-BUN: TUI resolution replaces Bun.embeddedFiles approach
+        // Original Bun code extracted TUI from embedded SEA assets.
+        // Now we use resolveTui() which checks multiple locations:
+        // - Dev mode: go run ./main.go
+        // - Production: looks for built binary at known paths
         // // if (Bun.embeddedFiles.length > 0) {
         // //   const blob = Bun.embeddedFiles[0] as File
-        // //   let binaryName = blob.name
-        // //   if (process.platform === "win32" && !binaryName.endsWith(".exe")) {
-        // //     binaryName += ".exe"
+        // //   const binary = path.join(Global.Path.cache, "tui", blob.name)
+        // //   if (!(await Bun.file(binary).exists())) {
+        // //     await Bun.write(binary, blob, { mode: 0o755 })
         // //   }
-        // //   const binary = path.join(Global.Path.cache, "tui", binaryName)
-        // //   const file = Bun.file(binary)
-        // //   if (!(await file.exists())) {
-        // //     await Bun.write(file, blob, { mode: 0o755 })
-        // //     await fs.chmod(binary, 0o755)
-        // //   }
-        // //   tuiCwd = process.cwd()
         // //   tuiCmd = [binary]
         // // }
+        const tui = await resolveTui()
 
         Log.Default.info("tui", {
-          cmd: tuiCmd,
+          cmd: tui.cmd,
+          cwd: tui.cwd,
         })
         // // const proc = Bun.spawn({ cmd: [...], ... })
         const proc = spawn({
           cmd: [
-            ...tuiCmd,
+            ...tui.cmd,
             ...(args.model ? ["--model", args.model] : []),
             ...(args.prompt ? ["--prompt", args.prompt] : []),
             ...(args.mode ? ["--mode", args.mode] : []),
           ],
-          cwd: tuiCwd,
+          cwd: tui.cwd,
           stdout: "inherit",
           stderr: "inherit",
           stdin: "inherit",
@@ -156,7 +146,7 @@ export const TuiCommand = cmd({
 
 /**
  * Get the correct command to run opencode CLI
- * In development: ["bun", "run", "packages/opencode/src/index.ts"]
+ * In development: ["tsx", "packages/opencode/src/index.ts"] or similar
  * In production: ["/path/to/opencode"]
  */
 function getOpencodeCommand(): string[] {
@@ -168,7 +158,7 @@ function getOpencodeCommand(): string[] {
   const execPath = process.execPath.toLowerCase()
 
   if (Installation.isDev()) {
-    // In development, use bun to run the TypeScript entry point
+    // In development, use the runtime (tsx/node) to run the TypeScript entry point
     return [execPath, "run", process.argv[1]]
   }
 

@@ -1,7 +1,10 @@
 import { z } from "zod"
 import { Tool } from "./tool"
 import { EditTool } from "./edit"
-import DESCRIPTION from "./multiedit.txt"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import DESCRIPTION from "./multiedit.txt"
+import { loadText } from "../compat"
+const DESCRIPTION = loadText("./multiedit.txt", import.meta.url)
 import path from "path"
 import { App } from "../app/app"
 

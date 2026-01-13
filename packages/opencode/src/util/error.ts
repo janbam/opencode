@@ -1,4 +1,8 @@
 import { z, type ZodSchema } from "zod"
+// NO-BUN: ensure zod-openapi extension is loaded before .openapi() is called
+// Side-effect import wasn't working due to ESM hoisting, so call explicitly
+import { extendZodWithOpenApi } from "zod-openapi"
+extendZodWithOpenApi(z)
 // import { Log } from "./log"
 
 // const log = Log.create()

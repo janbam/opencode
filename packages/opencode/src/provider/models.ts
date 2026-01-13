@@ -2,7 +2,9 @@ import { Global } from "../global"
 import { Log } from "../util/log"
 import path from "path"
 import { z } from "zod"
-import { data } from "./models-macro" with { type: "macro" }
+// NO-BUN: removed Bun macro import - now a regular async function call at runtime
+// // import { data } from "./models-macro" with { type: "macro" }
+import { data } from "./models-macro"
 // NO-BUN: replaced Bun.file/Bun.write with compat/file
 import { file, write } from "../compat/file"
 

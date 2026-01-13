@@ -1,9 +1,10 @@
 import { z } from "zod"
 import { Tool } from "./tool"
-import DESCRIPTION from "./bash.txt"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import DESCRIPTION from "./bash.txt"
+import { spawn, loadText } from "../compat"
+const DESCRIPTION = loadText("./bash.txt", import.meta.url)
 import { App } from "../app/app"
-// NO-BUN: Import spawn from compat layer
-import { spawn } from "../compat"
 
 const MAX_OUTPUT_LENGTH = 30000
 const DEFAULT_TIMEOUT = 1 * 60 * 1000

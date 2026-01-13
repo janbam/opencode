@@ -3,13 +3,14 @@ import * as path from "path"
 import { Tool } from "./tool"
 import { LSP } from "../lsp"
 import { Permission } from "../permission"
-import DESCRIPTION from "./write.txt"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import DESCRIPTION from "./write.txt"
+import { file, write, loadText } from "../compat"
+const DESCRIPTION = loadText("./write.txt", import.meta.url)
 import { App } from "../app/app"
 import { Bus } from "../bus"
 import { File } from "../file"
 import { FileTime } from "../file/time"
-// NO-BUN: Import file and write from compat layer
-import { file, write } from "../compat"
 
 export const WriteTool = Tool.define({
   id: "write",

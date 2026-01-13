@@ -15,10 +15,12 @@ import {
   type StreamTextResult,
 } from "ai"
 // NO-BUN: replaced Bun.file with compat/file
-import { file } from "../compat/file"
-
-import PROMPT_INITIALIZE from "../session/prompt/initialize.txt"
-import PROMPT_PLAN from "../session/prompt/plan.txt"
+import { file, loadText } from "../compat"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import PROMPT_INITIALIZE from "../session/prompt/initialize.txt"
+// // import PROMPT_PLAN from "../session/prompt/plan.txt"
+const PROMPT_INITIALIZE = loadText("./prompt/initialize.txt", import.meta.url)
+const PROMPT_PLAN = loadText("./prompt/plan.txt", import.meta.url)
 
 import { App } from "../app/app"
 import { Bus } from "../bus"

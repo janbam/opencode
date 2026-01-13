@@ -4,7 +4,10 @@ import path from "path"
 import { stat } from "node:fs/promises"
 import { Tool } from "./tool"
 import { App } from "../app/app"
-import DESCRIPTION from "./glob.txt"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import DESCRIPTION from "./glob.txt"
+import { loadText } from "../compat"
+const DESCRIPTION = loadText("./glob.txt", import.meta.url)
 import { Ripgrep } from "../file/ripgrep"
 
 export const GlobTool = Tool.define({

@@ -1,7 +1,10 @@
 import { z } from "zod"
 import { Tool } from "./tool"
 import TurndownService from "turndown"
-import DESCRIPTION from "./webfetch.txt"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import DESCRIPTION from "./webfetch.txt"
+import { loadText } from "../compat"
+const DESCRIPTION = loadText("./webfetch.txt", import.meta.url)
 
 const MAX_RESPONSE_SIZE = 5 * 1024 * 1024 // 5MB
 const DEFAULT_TIMEOUT = 30 * 1000 // 30 seconds

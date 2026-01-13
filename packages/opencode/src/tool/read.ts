@@ -2,11 +2,13 @@ import { z } from "zod"
 import * as fs from "fs"
 import * as path from "path"
 import { Tool } from "./tool"
-// NO-BUN: Import file handle from compat layer
-import { file } from "../compat"
+// NO-BUN: Import file handle and loadText from compat layer
+import { file, loadText } from "../compat"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import DESCRIPTION from "./read.txt"
+const DESCRIPTION = loadText("./read.txt", import.meta.url)
 import { LSP } from "../lsp"
 import { FileTime } from "../file/time"
-import DESCRIPTION from "./read.txt"
 import { App } from "../app/app"
 
 const DEFAULT_READ_LIMIT = 2000

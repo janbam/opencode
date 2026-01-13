@@ -1,7 +1,7 @@
-import { exists } from "fs/promises"
+// NO-BUN: Node.js fs/promises doesn't have exists - use compat instead
+// // import { exists } from "fs/promises"
 import { dirname, join, relative } from "path"
-// NO-BUN: replaced Bun.Glob with compat/glob
-import { Glob } from "../compat/glob"
+import { Glob, exists } from "../compat"
 
 export namespace Filesystem {
   export function overlaps(a: string, b: string) {

@@ -4,10 +4,11 @@ import { stat } from "node:fs/promises"
 import { Tool } from "./tool"
 import { App } from "../app/app"
 import { Ripgrep } from "../file/ripgrep"
-// NO-BUN: Import spawn from compat layer
-import { spawn } from "../compat"
-
-import DESCRIPTION from "./grep.txt"
+// NO-BUN: Import spawn and loadText from compat layer
+import { spawn, loadText } from "../compat"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import DESCRIPTION from "./grep.txt"
+const DESCRIPTION = loadText("./grep.txt", import.meta.url)
 
 export const GrepTool = Tool.define({
   id: "grep",

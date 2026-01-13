@@ -3,7 +3,10 @@ import { Tool } from "./tool"
 import path from "path"
 import { LSP } from "../lsp"
 import { App } from "../app/app"
-import DESCRIPTION from "./lsp-hover.txt"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import DESCRIPTION from "./lsp-hover.txt"
+import { loadText } from "../compat"
+const DESCRIPTION = loadText("./lsp-hover.txt", import.meta.url)
 
 export const LspHoverTool = Tool.define({
   id: "lsp_hover",

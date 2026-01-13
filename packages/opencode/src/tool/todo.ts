@@ -1,6 +1,9 @@
 import { z } from "zod"
 import { Tool } from "./tool"
-import DESCRIPTION_WRITE from "./todowrite.txt"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import DESCRIPTION_WRITE from "./todowrite.txt"
+import { loadText } from "../compat"
+const DESCRIPTION_WRITE = loadText("./todowrite.txt", import.meta.url)
 import { App } from "../app/app"
 
 const TodoInfo = z.object({

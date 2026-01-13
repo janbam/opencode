@@ -10,13 +10,14 @@ import { Tool } from "./tool"
 import { LSP } from "../lsp"
 import { createTwoFilesPatch } from "diff"
 import { Permission } from "../permission"
-import DESCRIPTION from "./edit.txt"
+// NO-BUN: replaced Bun's .txt import with loadText
+// // import DESCRIPTION from "./edit.txt"
+import { file, write, loadText } from "../compat"
+const DESCRIPTION = loadText("./edit.txt", import.meta.url)
 import { App } from "../app/app"
 import { File } from "../file"
 import { Bus } from "../bus"
 import { FileTime } from "../file/time"
-// NO-BUN: Import file and write from compat layer
-import { file, write } from "../compat"
 
 export const EditTool = Tool.define({
   id: "edit",
