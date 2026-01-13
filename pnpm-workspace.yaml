@@ -1,0 +1,9 @@
+# pnpm workspace configuration
+# NO-BUN: Replacing Bun's workspaces with pnpm-workspace.yaml
+
+packages:
+  - "packages/*"
+
+# Allow esbuild to run its postinstall (needed for bundling)
+onlyBuiltDependencies:
+  - esbuild

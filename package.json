@@ -3,27 +3,16 @@
   "name": "opencode",
   "private": true,
   "type": "module",
-  "packageManager": "bun@1.2.14",
   "scripts": {
-    "dev": "bun run packages/opencode/src/index.ts",
-    "typecheck": "bun run --filter='*' typecheck",
+    "dev": "tsx packages/opencode/src/index.ts",
+    "typecheck": "pnpm -r run typecheck",
     "stainless": "./scripts/stainless",
     "postinstall": "./scripts/hooks"
   },
-  "workspaces": {
-    "packages": [
-      "packages/*"
-    ],
-    "catalog": {
-      "typescript": "5.8.2",
-      "@types/node": "22.13.9",
-      "zod": "3.25.49",
-      "ai": "5.0.0-beta.18"
-    }
-  },
   "devDependencies": {
     "prettier": "3.5.3",
-    "sst": "3.17.8"
+    "sst": "3.17.8",
+    "tsx": "4.19.4"
   },
   "repository": {
     "type": "git",

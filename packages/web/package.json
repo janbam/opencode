@@ -18,7 +18,7 @@
     "@fontsource/ibm-plex-mono": "5.2.5",
     "@shikijs/transformers": "3.4.2",
     "@types/luxon": "3.6.2",
-    "ai": "catalog:",
+    "ai": "5.0.0-beta.18",
     "astro": "5.7.13",
     "diff": "8.0.2",
     "js-base64": "3.7.7",
@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "opencode": "workspace:*",
-    "@types/node": "catalog:",
-    "typescript": "catalog:"
+    "@types/node": "22.13.9",
+    "typescript": "5.8.2"
   }
 }

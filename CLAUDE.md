@@ -102,6 +102,16 @@ You are running in **ultrayolo** mode. Work autonomously:
 - Use `ultrayolo msg` for fresh turns on complex phases
 - Use `ultrayolo passover` when reaching context limits
 
+## When In Doubt: Consult GPT5
+
+**GPT5 is your pair programmer.** When you're stuck, uncertain, or hitting issues that aren't easily resolved:
+
+- Use `mcp__GPT5__chat` to consult GPT5
+- Share the problem context, code snippets, error messages
+- GPT5 can help debug, suggest approaches, sanity-check solutions
+
+Don't struggle alone — pair programming accelerates problem-solving.
+
 ## Migration Stats
 
 - **114** Bun API usages

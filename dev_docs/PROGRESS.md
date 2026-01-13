@@ -6,13 +6,14 @@
 >
 > **SCOPE: Linux only, local deployment only, no publishing**
 
-## Current Status: 🟡 Planning Complete
+## Current Status: 🟢 Phase 1 Complete
 
 ### Session Log
 
 | Date | Session ID | Work Done |
 |------|------------|-----------|
 | 2025-01-13 | a148fa34 | Initial investigation, GPT-5 consultation, created dev_docs |
+| 2025-01-13 | 7d0f9a46 | **Phase 1 Complete**: pnpm workspace, deps, tsconfig |
 
 ---
 
@@ -20,7 +21,7 @@
 
 | Phase | Status | Progress |
 |-------|--------|----------|
-| Phase 1: Foundation Setup | 🔴 Not Started | 0% |
+| Phase 1: Foundation Setup | 🟢 Complete | 100% |
 | Phase 2: API Replacements | 🔴 Not Started | 0% |
 | Phase 3: TUI Integration | 🔴 Not Started | 0% |
 | Phase 4: Build System | 🔴 Not Started | 0% |
@@ -32,28 +33,29 @@
 
 ## Detailed Task Tracking
 
-### Phase 1: Foundation Setup
+### Phase 1: Foundation Setup ✅
 
-- [ ] 1.1 Package Manager Migration
-  - [ ] Create `pnpm-workspace.yaml`
-  - [ ] Convert lockfile
-  - [ ] Replace catalog references
-  - [ ] Update package.json files
-  - [ ] Verify workspace linking
+- [x] 1.1 Package Manager Migration
+  - [x] Create `pnpm-workspace.yaml`
+  - [x] Fresh lockfile (bun.lock → pnpm-lock.yaml via `pnpm install`)
+  - [x] Replace catalog references with pinned versions
+  - [x] Update all package.json files
+  - [x] Verify workspace linking
 
-- [ ] 1.2 Add New Dependencies
-  - [ ] Runtime deps: execa, glob, minimatch, which, @hono/node-server, env-paths
-  - [ ] Dev deps: tsx, esbuild, concurrently
+- [x] 1.2 Add New Dependencies
+  - [x] Runtime deps: execa, glob, minimatch, which, @hono/node-server, env-paths
+  - [x] Dev deps: tsx (root), esbuild, concurrently
 
-- [ ] 1.3 Update TypeScript Config
-  - [ ] Verify "type": "module"
-  - [ ] Update tsconfig
-  - [ ] Run tsc --noEmit
+- [x] 1.3 Update TypeScript Config
+  - [x] Verify "type": "module"
+  - [x] Update tsconfig (Bundler moduleResolution for tsx/esbuild)
+  - [x] Removed @tsconfig/bun and @types/bun
+  - [x] tsc reports 114 Bun API errors (expected, Phase 2 will fix)
 
-- [ ] 1.4 Update Dev Scripts
-  - [ ] Add tsx watch script
-  - [ ] Add build script
-  - [ ] Test dev workflow
+- [x] 1.4 Update Dev Scripts
+  - [x] `pnpm dev` uses tsx
+  - [ ] Build script (Phase 4)
+  - [x] Dev workflow ready (fails on Bun imports as expected)
 
 ### Phase 2: API Replacements
 
@@ -154,10 +156,18 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 ## Notes for Next Session
 
 ### Where to Start
-1. Begin with **Phase 1: Foundation Setup**
-2. Create `pnpm-workspace.yaml` first
-3. Run `pnpm import` to convert bun.lock
-4. Add dependencies
+1. Begin with **Phase 2: API Replacements**
+2. Create the `src/compat/` compatibility layer first
+3. Start with `compat/file.ts` (most common API)
+4. Then migrate files one by one using the compat layer
+
+### Recommended Order for Phase 2
+1. `src/compat/file.ts` - File operations (Bun.file, Bun.write)
+2. `src/compat/spawn.ts` - Process spawning
+3. `src/compat/shell.ts` - Shell template ($)
+4. `src/compat/which.ts` - Executable lookup
+5. `src/compat/glob.ts` - Glob patterns
+6. Then migrate source files using these helpers
 
 ### Key Decisions Made
 - Using `tsx` for development
@@ -167,12 +177,16 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 - **Linux only** — no cross-platform concerns
 - **Local deployment only** — no publishing
 - **NO-BUN markers** — keep original Bun code as comments when replacing
+- **Bundler moduleResolution** — allows extension-less imports (works with tsx/esbuild)
 
-### Files Created This Session
-- `dev_docs/bun-api-replacements.md` - API replacement guide
-- `dev_docs/migration-architecture.md` - Build system guide
-- `dev_docs/ROADMAP.md` - Migration roadmap
-- `dev_docs/PROGRESS.md` - This file
+### Files Modified This Session (7d0f9a46)
+- `pnpm-workspace.yaml` - Created
+- `package.json` - Updated for pnpm
+- `packages/opencode/package.json` - Added deps, removed Bun types
+- `packages/function/package.json` - Replaced catalog refs
+- `packages/web/package.json` - Replaced catalog refs
+- `tsconfig.json` - Updated for Node.js
+- `packages/opencode/tsconfig.json` - Bundler mode
 
 ### Reference Commands
 ```bash
