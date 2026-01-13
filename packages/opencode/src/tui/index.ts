@@ -25,25 +25,14 @@ export interface TuiCommand {
  * Resolve the TUI command based on current environment
  *
  * Resolution order:
- * 1. Dev mode → `go run ./main.go`
- * 2. OPENCODE_TUI_PATH env var → use specified path
+ * 1. OPENCODE_TUI_PATH env var → use specified path (highest priority)
+ * 2. Dev mode → `go run ./main.go`
  * 3. Global bin path → ~/.local/share/opencode/bin/tui
  * 4. Project dist path → dist/tui/linux-x64/tui
  * 5. Adjacent to CLI → look next to the running executable
  */
 export async function resolveTui(): Promise<TuiCommand> {
-  // Dev mode: use `go run` from source
-  if (Installation.isDev()) {
-    const tuiSourceDir = fileURLToPath(
-      new URL("../../../../tui/cmd/opencode", import.meta.url)
-    )
-    return {
-      cmd: ["go", "run", "./main.go"],
-      cwd: tuiSourceDir,
-    }
-  }
-
-  // Check OPENCODE_TUI_PATH env var
+  // Check OPENCODE_TUI_PATH env var first (takes priority over dev mode)
   const envPath = process.env["OPENCODE_TUI_PATH"]
   if (envPath) {
     const exists = await fileExists(envPath)
@@ -52,6 +41,17 @@ export async function resolveTui(): Promise<TuiCommand> {
         cmd: [envPath],
         cwd: process.cwd(),
       }
+    }
+  }
+
+  // Dev mode: use `go run` from source
+  if (Installation.isDev()) {
+    const tuiSourceDir = fileURLToPath(
+      new URL("../../../../tui/cmd/opencode", import.meta.url)
+    )
+    return {
+      cmd: ["go", "run", "./main.go"],
+      cwd: tuiSourceDir,
     }
   }
 
