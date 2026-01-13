@@ -146,26 +146,28 @@ const testCases: TestCase[] = [
   },
 
   // EscapeNormalizedReplacer cases
-  {
-    content: 'console.log("Hello\nWorld");',
-    find: 'console.log("Hello\\nWorld");',
-    replace: 'console.log("Hello\nUniverse");',
-  },
-  {
-    content: "const str = 'It's working';",
-    find: "const str = 'It\\'s working';",
-    replace: "const str = 'It's fixed';",
-  },
-  {
-    content: "const template = `Hello ${name}`;",
-    find: "const template = `Hello \\${name}`;",
-    replace: "const template = `Hi ${name}`;",
-  },
-  {
-    content: "const path = 'C:\\Users\\test';",
-    find: "const path = 'C:\\\\Users\\\\test';",
-    replace: "const path = 'C:\\Users\\admin';",
-  },
+  // NOTE: These tests are disabled because EscapeNormalizedReplacer is commented out
+  // in edit.ts (disabled in commit cf83e31). Re-enable when replacer is re-enabled.
+  // {
+  //   content: 'console.log("Hello\nWorld");',
+  //   find: 'console.log("Hello\\nWorld");',
+  //   replace: 'console.log("Hello\nUniverse");',
+  // },
+  // {
+  //   content: "const str = 'It's working';",
+  //   find: "const str = 'It\\'s working';",
+  //   replace: "const str = 'It's fixed';",
+  // },
+  // {
+  //   content: "const template = `Hello ${name}`;",
+  //   find: "const template = `Hello \\${name}`;",
+  //   replace: "const template = `Hi ${name}`;",
+  // },
+  // {
+  //   content: "const path = 'C:\\Users\\test';",
+  //   find: "const path = 'C:\\\\Users\\\\test';",
+  //   replace: "const path = 'C:\\Users\\admin';",
+  // },
 
   // MultiOccurrenceReplacer cases (with replaceAll)
   {
