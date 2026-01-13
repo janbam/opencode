@@ -57,16 +57,19 @@ Take a look at the git history to see what kind of PRs we end up merging.
 > **Note**: If you do not follow the above guidelines we might close your PR
 > that you worked really hard on.
 
-To run opencode locally you need.
+To run opencode locally you need:
 
-- Bun
-- Golang 1.24.x
+- Node.js 22+
+- pnpm
+- Go 1.21+
 
-And run.
+And run:
 
 ```bash
-$ bun install
-$ bun run packages/opencode/src/index.ts
+pnpm install
+pnpm dev           # development (tsx watch mode)
+pnpm build         # build for production
+pnpm test          # run tests
 ```
 
 #### Development Notes
