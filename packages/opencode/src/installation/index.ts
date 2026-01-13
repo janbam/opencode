@@ -142,13 +142,13 @@ export namespace Installation {
 
   export async function latest() {
     return fetch("https://api.github.com/repos/sst/opencode/releases/latest")
-      .then((res) => res.json())
+      .then((res) => res.json() as Promise<{ tag_name?: string }>)
       .then((data) => {
         if (typeof data.tag_name !== "string") {
-          log.error("GitHub API error", data)
+          log.error("GitHub API error", data as Record<string, unknown>)
           throw new Error("failed to fetch latest version")
         }
-        return data.tag_name.slice(1) as string
+        return data.tag_name.slice(1)
       })
   }
 }

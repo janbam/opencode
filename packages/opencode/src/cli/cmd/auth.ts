@@ -216,7 +216,7 @@ export const AuthLoginCommand = cmd({
           if (!response.ok) {
             throw new Error("Failed to create API key")
           }
-          const json = await response.json()
+          const json = (await response.json()) as { raw_key: string }
           await Auth.set("anthropic", {
             type: "api",
             key: json.raw_key,

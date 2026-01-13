@@ -1,6 +1,8 @@
 import { z } from "zod"
 import { Tool } from "./tool"
 import TurndownService from "turndown"
+// NO-BUN: replaced HTMLRewriter with htmlparser2
+import { Parser } from "htmlparser2"
 // NO-BUN: replaced Bun's .txt import with loadText
 // // import DESCRIPTION from "./webfetch.txt"
 import { loadText } from "../compat"
@@ -115,35 +117,29 @@ export const WebFetchTool = Tool.define({
   },
 })
 
-async function extractTextFromHTML(html: string) {
+// NO-BUN: replaced HTMLRewriter with htmlparser2
+// HTMLRewriter is a Bun-specific API for streaming HTML transformation
+function extractTextFromHTML(html: string): string {
   let text = ""
-  let skipContent = false
+  let skip = 0
+  const skipTags = new Set(["script", "style", "noscript", "iframe", "object", "embed"])
 
-  const rewriter = new HTMLRewriter()
-    .on("script, style, noscript, iframe, object, embed", {
-      element() {
-        skipContent = true
+  const parser = new Parser(
+    {
+      onopentag(name) {
+        if (skipTags.has(name)) skip++
       },
-      text() {
-        // Skip text content inside these elements
+      ontext(data) {
+        if (skip === 0) text += data
       },
-    })
-    .on("*", {
-      element(element) {
-        // Reset skip flag when entering other elements
-        if (!["script", "style", "noscript", "iframe", "object", "embed"].includes(element.tagName)) {
-          skipContent = false
-        }
+      onclosetag(name) {
+        if (skipTags.has(name)) skip--
       },
-      text(input) {
-        if (!skipContent) {
-          text += input.text
-        }
-      },
-    })
-    .transform(new Response(html))
+    },
+    { decodeEntities: true }
+  )
 
-  await rewriter.text()
+  parser.end(html)
   return text.trim()
 }
 

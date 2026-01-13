@@ -254,7 +254,7 @@ export namespace LSPServer {
           return
         }
 
-        const release = await releaseResponse.json()
+        const release = (await releaseResponse.json()) as { assets: Array<{ name: string; browser_download_url: string }> }
 
         // NO-BUN: Linux only, simplified platform detection
         const arch = process.arch

@@ -9,6 +9,7 @@
 |----|----------|------|-------------|-------|
 | I-002 | Low | Tests | 4 edit.test.ts failures (EscapeNormalizedReplacer) | Pre-existing logic bug, not migration-related |
 | I-003 | High | Runtime | Server.address() returns null on startup | Blocks TUI launch, needs investigation |
+| I-004 | Low | Types | 19 pnpm type inference errors (TS2742, TS4094, TS4058) | Pre-existing, not migration-related |
 
 ### I-003: Server.address() Returns Null
 
@@ -42,6 +43,23 @@ Affected tests (in `packages/opencode/test/tool/edit.test.ts`):
 - case 22: Backslash path handling
 
 **Status**: Low priority. Does not affect core functionality.
+
+### I-004: pnpm Type Inference Errors (Pre-existing)
+
+**Note**: These are NOT migration issues. They're TypeScript errors related to pnpm's node_modules structure.
+
+**Errors (19 total):**
+- `src/mcp/index.ts(97)`: TS2742 (cannot name type without reference to internal node_modules path), TS4094 (exported class property may not be private/protected)
+- `src/provider/provider.ts(486)`: TS4058 (return type uses name from external module)
+- `src/server/server.ts(723)`: TS2742 (cannot name openapi type)
+
+**Root Cause**: TypeScript struggles to infer types when they reference internal pnpm `.pnpm/` paths. This happens when:
+1. An exported function/class uses types from deeply nested dependencies
+2. Type declarations need to reference transitive dependencies
+
+**Potential Fix**: Add explicit type annotations to the affected exports, or configure `preserveSymlinks` in tsconfig.
+
+**Status**: Low priority. These existed before the migration and don't affect runtime.
 
 ## Resolved Issues
 

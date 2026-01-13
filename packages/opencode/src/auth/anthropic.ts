@@ -42,10 +42,10 @@ export namespace AuthAnthropic {
       }),
     })
     if (!result.ok) throw new ExchangeFailed()
-    const json = await result.json()
+    const json = (await result.json()) as { refresh_token: string; access_token: string; expires_in: number }
     return {
-      refresh: json.refresh_token as string,
-      access: json.access_token as string,
+      refresh: json.refresh_token,
+      access: json.access_token,
       expires: Date.now() + json.expires_in * 1000,
     }
   }
@@ -66,14 +66,14 @@ export namespace AuthAnthropic {
       }),
     })
     if (!response.ok) return
-    const json = await response.json()
+    const json = (await response.json()) as { refresh_token: string; access_token: string; expires_in: number }
     await Auth.set("anthropic", {
       type: "oauth",
-      refresh: json.refresh_token as string,
-      access: json.access_token as string,
+      refresh: json.refresh_token,
+      access: json.access_token,
       expires: Date.now() + json.expires_in * 1000,
     })
-    return json.access_token as string
+    return json.access_token
   }
 
   export class ExchangeFailed extends Error {

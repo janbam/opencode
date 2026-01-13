@@ -12,7 +12,8 @@ export const AuthCopilot = lazy(async () => {
   const f = file(path.join(Global.Path.state, "plugin", "copilot.ts"))
   const response = fetch("https://raw.githubusercontent.com/sst/opencode-github-copilot/refs/heads/main/auth.ts")
     .then((x) => write(f, x))
-    .catch(() => {})
+    .then(() => true)
+    .catch(() => false)
 
   if (!(await f.exists())) {
     const worked = await response

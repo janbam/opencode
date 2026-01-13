@@ -25,6 +25,7 @@
 | 2025-01-13 | f5bc3052 | **Phase 7 Complete**: Removed bunfig.toml, marked publish.ts as unmaintained, verified build/tests |
 | 2025-01-13 | f5bc3052 | **Phase 8 Started**: Fixed ResolveMessage error, found Server.address() issue |
 | 2025-01-13 | ec8d4131 | **Typecheck Investigation**: 189→126 errors. Fixed ESNext lib, fixed zod-openapi augmentation (GPT5 consult) |
+| 2025-01-13 | 3b50d1f9 | **Typecheck Complete**: 126→19 errors. Fixed: zod imports, Glob.scanSync, HTMLRewriter→htmlparser2, unknown types, void truthiness. 19 remaining are pre-existing pnpm issues (I-004) |
 
 ---
 

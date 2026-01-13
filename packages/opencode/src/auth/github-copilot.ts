@@ -44,7 +44,7 @@ export namespace AuthGithubCopilot {
         scope: "read:user",
       }),
     })
-    const deviceData: DeviceCodeResponse = await deviceResponse.json()
+    const deviceData = (await deviceResponse.json()) as DeviceCodeResponse
     return {
       device: deviceData.device_code,
       user: deviceData.user_code,
@@ -71,7 +71,7 @@ export namespace AuthGithubCopilot {
 
     if (!response.ok) return "failed"
 
-    const data: AccessTokenResponse = await response.json()
+    const data = (await response.json()) as AccessTokenResponse
 
     if (data.access_token) {
       // Store the GitHub OAuth token
@@ -109,7 +109,7 @@ export namespace AuthGithubCopilot {
 
     if (!response.ok) return
 
-    const tokenData: CopilotTokenResponse = await response.json()
+    const tokenData = (await response.json()) as CopilotTokenResponse
 
     // Store the Copilot API token
     await Auth.set("github-copilot", {

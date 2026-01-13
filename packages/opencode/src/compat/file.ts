@@ -79,7 +79,8 @@ export function file(filepath: string): FileHandle {
 
     async arrayBuffer(): Promise<ArrayBuffer> {
       const buffer = await readFile(filepath)
-      return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
+      // Node.js Buffer always uses ArrayBuffer, not SharedArrayBuffer
+      return (buffer.buffer as ArrayBuffer).slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
     },
 
     async size(): Promise<number> {
