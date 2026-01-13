@@ -1,5 +1,6 @@
 import path from "path"
 import fs from "fs/promises"
+import { createWriteStream } from "fs"
 import { Global } from "../global"
 import z from "zod"
 
@@ -64,12 +65,15 @@ export namespace Log {
     cleanup(dir)
     if (options.print) return
     logpath = path.join(dir, new Date().toISOString().split(".")[0].replace(/:/g, "") + ".log")
-    const logfile = Bun.file(logpath)
+    // NO-BUN: replaced Bun.file().writer() with Node.js createWriteStream
+    // // const logfile = Bun.file(logpath)
+    // // await fs.truncate(logpath).catch(() => {})
+    // // const writer = logfile.writer()
+    // // process.stderr.write = (msg) => { writer.write(msg); writer.flush(); return true }
     await fs.truncate(logpath).catch(() => {})
-    const writer = logfile.writer()
+    const writer = createWriteStream(logpath, { flags: "a" })
     process.stderr.write = (msg) => {
       writer.write(msg)
-      writer.flush()
       return true
     }
   }

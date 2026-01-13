@@ -14,6 +14,8 @@ import {
   stepCountIs,
   type StreamTextResult,
 } from "ai"
+// NO-BUN: replaced Bun.file with compat/file
+import { file } from "../compat/file"
 
 import PROMPT_INITIALIZE from "../session/prompt/initialize.txt"
 import PROMPT_PLAN from "../session/prompt/plan.txt"
@@ -466,7 +468,9 @@ export namespace Session {
                 ]
               }
 
-              let file = Bun.file(filePath)
+              // NO-BUN: replaced Bun.file with compat/file
+              // // let file = Bun.file(filePath)
+              let f = file(filePath)
               FileTime.read(input.sessionID, filePath)
               return [
                 {
@@ -482,7 +486,9 @@ export namespace Session {
                   messageID: userMsg.id,
                   sessionID: input.sessionID,
                   type: "file",
-                  url: `data:${part.mime};base64,` + Buffer.from(await file.bytes()).toString("base64"),
+                  // NO-BUN: file.bytes() → f.arrayBuffer() (compat layer)
+                  // // url: `data:${part.mime};base64,` + Buffer.from(await file.bytes()).toString("base64"),
+                  url: `data:${part.mime};base64,` + Buffer.from(await f.arrayBuffer()).toString("base64"),
                   mime: part.mime,
                   filename: part.filename!,
                 },

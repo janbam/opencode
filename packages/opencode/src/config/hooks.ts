@@ -5,6 +5,8 @@ import { Session } from "../session"
 import { Log } from "../util/log"
 import { Config } from "./config"
 import path from "path"
+// NO-BUN: replaced Bun.spawn with compat/spawn
+import { spawn } from "../compat/spawn"
 
 export namespace ConfigHooks {
   const log = Log.create({ service: "config.hooks" })
@@ -21,7 +23,15 @@ export namespace ConfigHooks {
           file: payload.properties.file,
           command: item.command,
         })
-        Bun.spawn({
+        // NO-BUN: replaced Bun.spawn with compat/spawn
+        // // Bun.spawn({
+        // //   cmd: item.command.map((x) => x.replace("$FILE", payload.properties.file)),
+        // //   env: item.environment,
+        // //   cwd: app.path.cwd,
+        // //   stdout: "ignore",
+        // //   stderr: "ignore",
+        // // })
+        spawn({
           cmd: item.command.map((x) => x.replace("$FILE", payload.properties.file)),
           env: item.environment,
           cwd: app.path.cwd,
@@ -38,7 +48,15 @@ export namespace ConfigHooks {
           log.info("session_completed", {
             command: item.command,
           })
-          Bun.spawn({
+          // NO-BUN: replaced Bun.spawn with compat/spawn
+          // // Bun.spawn({
+          // //   cmd: item.command,
+          // //   cwd: App.info().path.cwd,
+          // //   env: item.environment,
+          // //   stdout: "ignore",
+          // //   stderr: "ignore",
+          // // })
+          spawn({
             cmd: item.command,
             cwd: App.info().path.cwd,
             env: item.environment,

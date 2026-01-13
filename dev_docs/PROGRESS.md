@@ -15,6 +15,7 @@
 | 2025-01-13 | a148fa34 | Initial investigation, GPT-5 consultation, created dev_docs |
 | 2025-01-13 | 7d0f9a46 | **Phase 1 Complete** + **Compat Layer Complete**: pnpm, deps, tsconfig, src/compat/* |
 | 2025-01-13 | 8bae2780 | **All tool files migrated** + **All file/* migrated**: 11 files total |
+| 2025-01-13 | aff02b35 | **All easy file migrations**: session, auth, config, util, storage, global, app, provider: 12 files |
 
 ---
 
@@ -23,7 +24,7 @@
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Phase 1: Foundation Setup | 🟢 Complete | 100% |
-| Phase 2: API Replacements | 🟡 In Progress | 65% |
+| Phase 2: API Replacements | 🟡 In Progress | 85% |
 | Phase 3: TUI Integration | 🔴 Not Started | 0% |
 | Phase 4: Build System | 🔴 Not Started | 0% |
 | Phase 5: Publishing | 🔴 Not Started | 0% |
@@ -86,9 +87,19 @@
 | src/file/fzf.ts | 🟢 | which, file, write, spawn → compat |
 | src/file/index.ts | 🟢 | $, file → compat |
 | src/file/time.ts | 🟢 | stat → fs/promises |
+| src/session/index.ts | 🟢 | file → compat |
+| src/session/system.ts | 🟢 | file → compat |
+| src/auth/copilot.ts | 🟢 | file, write → compat |
+| src/auth/index.ts | 🟢 | file, write → compat |
+| src/config/config.ts | 🟢 | file, write → compat |
+| src/config/hooks.ts | 🟢 | spawn → compat |
+| src/util/log.ts | 🟢 | file → createWriteStream |
+| src/util/filesystem.ts | 🟢 | Glob → compat |
+| src/storage/storage.ts | 🟢 | file, write, Glob → compat |
+| src/global/index.ts | 🟢 | file, write → compat |
+| src/app/app.ts | 🟢 | file, write → compat |
+| src/provider/models.ts | 🟢 | file, write → compat |
 | src/server/server.ts | 🔴 | serve |
-| src/session/index.ts | 🔴 | file |
-| src/session/system.ts | 🔴 | file |
 | src/bun/index.ts | 🔴 | spawn, file, write |
 | src/cli/cmd/tui.ts | 🔴 | **CRITICAL** - embeddedFiles |
 | src/cli/cmd/run.ts | 🔴 | spawn |
@@ -98,18 +109,8 @@
 | src/lsp/client.ts | 🔴 | file |
 | src/format/formatter.ts | 🔴 | which |
 | src/format/index.ts | 🔴 | spawn |
-| src/app/app.ts | 🔴 | file, write |
-| src/auth/copilot.ts | 🔴 | file |
-| src/auth/index.ts | 🔴 | file |
-| src/config/config.ts | 🔴 | file |
-| src/config/hooks.ts | 🔴 | TBD |
-| src/global/index.ts | 🔴 | file |
 | src/installation/index.ts | 🔴 | $ |
 | src/snapshot/index.ts | 🔴 | $ |
-| src/storage/storage.ts | 🔴 | file |
-| src/provider/models.ts | 🔴 | file, write |
-| src/util/log.ts | 🔴 | file |
-| src/util/filesystem.ts | 🔴 | file |
 
 Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 
@@ -158,33 +159,24 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 ## Notes for Next Session
 
 ### Where to Start
-1. **All tool/*.ts done** — 7 files migrated
-2. **All file/*.ts done** — 4 files migrated
-3. Continue with remaining source files
-4. Use `NO-BUN` markers as documented in CLAUDE.md
+23 of 33 files migrated (70%). 10 files remaining.
 
-### Recommended Migration Order
-Tool and file utilities done. Continue with:
+### Remaining Files (10)
 
-1. **Easy** (file ops only):
-   - `src/session/*.ts` - file
-   - `src/auth/*.ts` - file
-   - `src/config/*.ts` - file
-   - `src/util/*.ts` - file
-   - `src/storage/*.ts` - file
-   - `src/global/*.ts` - file
-   - `src/app/*.ts` - file, write
-   - `src/provider/*.ts` - file, write
+1. **Medium** (multiple APIs):
+   - `src/format/formatter.ts` - Bun.which
+   - `src/format/index.ts` - Bun.spawn
+   - `src/lsp/server.ts` - $, which, spawn, file
+   - `src/lsp/client.ts` - file
+   - `src/installation/index.ts` - $
+   - `src/snapshot/index.ts` - $
 
-2. **Medium** (multiple APIs):
-   - `src/format/*.ts` - Bun.which, spawn
-   - `src/lsp/*.ts` - $, which, spawn, file
-   - `src/installation/*.ts` - $
-   - `src/snapshot/*.ts` - $
-
-3. **Complex** (critical/many APIs):
+2. **Complex** (critical/many APIs):
    - `src/server/server.ts` - Bun.serve → @hono/node-server
-   - `src/cli/cmd/tui.ts` - embeddedFiles, spawn (needs TUI download logic)
+   - `src/cli/cmd/tui.ts` - **CRITICAL** - embeddedFiles, spawn (needs TUI download logic)
+   - `src/cli/cmd/run.ts` - spawn
+   - `src/cli/cmd/generate.ts` - TBD
+   - `src/cli/ui.ts` - TBD
    - `src/bun/index.ts` - may be removed entirely
 
 ### Key Decisions Made

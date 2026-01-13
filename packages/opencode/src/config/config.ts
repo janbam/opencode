@@ -9,6 +9,8 @@ import { Global } from "../global"
 import fs from "fs/promises"
 import { lazy } from "../util/lazy"
 import { NamedError } from "../util/error"
+// NO-BUN: replaced Bun.file/Bun.write with compat/file
+import { file, write } from "../compat/file"
 
 export namespace Config {
   const log = Log.create({ service: "config" })
@@ -214,7 +216,9 @@ export namespace Config {
         if (provider && model) result.model = `${provider}/${model}`
         result["$schema"] = "https://opencode.ai/config.json"
         result = mergeDeep(result, rest)
-        await Bun.write(path.join(Global.Path.config, "config.json"), JSON.stringify(result, null, 2))
+        // NO-BUN: replaced Bun.write with compat/file write
+        // // await Bun.write(path.join(Global.Path.config, "config.json"), JSON.stringify(result, null, 2))
+        await write(path.join(Global.Path.config, "config.json"), JSON.stringify(result, null, 2))
         await fs.unlink(path.join(Global.Path.config, "config"))
       })
       .catch(() => {})
@@ -223,7 +227,9 @@ export namespace Config {
   })
 
   async function load(configPath: string) {
-    let text = await Bun.file(configPath)
+    // NO-BUN: replaced Bun.file().text() with file().text()
+    // // let text = await Bun.file(configPath).text().catch(...)
+    let text = await file(configPath)
       .text()
       .catch((err) => {
         if (err.code === "ENOENT") return
@@ -241,7 +247,9 @@ export namespace Config {
       for (const match of fileMatches) {
         const filePath = match.replace(/^"?\{file:/, "").replace(/\}"?$/, "")
         const resolvedPath = path.isAbsolute(filePath) ? filePath : path.resolve(configDir, filePath)
-        const fileContent = await Bun.file(resolvedPath).text()
+        // NO-BUN: replaced Bun.file().text() with file().text()
+        // // const fileContent = await Bun.file(resolvedPath).text()
+        const fileContent = await file(resolvedPath).text()
         text = text.replace(match, JSON.stringify(fileContent))
       }
     }
@@ -257,7 +265,9 @@ export namespace Config {
     if (parsed.success) {
       if (!parsed.data.$schema) {
         parsed.data.$schema = "https://opencode.ai/config.json"
-        await Bun.write(configPath, JSON.stringify(parsed.data, null, 2))
+        // NO-BUN: replaced Bun.write with compat/file write
+        // // await Bun.write(configPath, JSON.stringify(parsed.data, null, 2))
+        await write(configPath, JSON.stringify(parsed.data, null, 2))
       }
       return parsed.data
     }

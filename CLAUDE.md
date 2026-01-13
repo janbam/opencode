@@ -30,9 +30,9 @@ await writeFile(filepath, content);
 
 ### Keep Sessions Short
 
-**Default: Hand off early.** Don't stretch sessions to complete everything.
+**Default: Pass over early.** Don't stretch sessions to complete everything.
 
-- If a task spans multiple files/locations, it's fine to hand off mid-task
+- If a task spans multiple files/locations, it's fine to pass over mid-task
 - The next Claude instance will pick up exactly where you left off
 - Only extend a session if you're working on something that **must not be left open** (e.g., broken build, incomplete refactor that breaks tests)
 
@@ -64,6 +64,7 @@ dev_docs/ISSUES.md
 
 ### During Session
 - Pick the next uncompleted task from PROGRESS.md
+- Keep your TodoWrite list short! When your todos are completed and you're still under 100k context, you can add new ones
 - Reference `dev_docs/bun-api-replacements.md` for API mappings
 - Reference `dev_docs/migration-architecture.md` for build/architecture decisions
 - Test changes before marking complete
@@ -105,6 +106,8 @@ You are running in **ultrayolo** mode. Work autonomously:
 - Commit working increments
 - Use `ultrayolo msg` for fresh turns on complex phases
 - Use `ultrayolo passover` early to start a fresh session to continue your work
+- A SHORT session (<120k context) is ALWAYS BETTER than a long session!!!
+- You DON'T need to complete all of your TodoWrite items in your session, the next instance will pick up automatically!
 
 ## When In Doubt: Consult GPT5
 

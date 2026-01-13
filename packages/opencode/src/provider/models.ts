@@ -3,6 +3,8 @@ import { Log } from "../util/log"
 import path from "path"
 import { z } from "zod"
 import { data } from "./models-macro" with { type: "macro" }
+// NO-BUN: replaced Bun.file/Bun.write with compat/file
+import { file, write } from "../compat/file"
 
 export namespace ModelsDev {
   const log = Log.create({ service: "models.dev" })
@@ -50,8 +52,14 @@ export namespace ModelsDev {
   export type Provider = z.infer<typeof Provider>
 
   export async function get() {
-    const file = Bun.file(filepath)
-    const result = await file.json().catch(() => {})
+    // NO-BUN: replaced Bun.file().json() with file().text() + JSON.parse
+    // // const file = Bun.file(filepath)
+    // // const result = await file.json().catch(() => {})
+    const f = file(filepath)
+    const result = await f
+      .text()
+      .then((t) => JSON.parse(t))
+      .catch(() => {})
     if (result) {
       refresh()
       return result as Record<string, Provider>
@@ -62,9 +70,11 @@ export namespace ModelsDev {
   }
 
   async function refresh() {
-    const file = Bun.file(filepath)
+    // NO-BUN: replaced Bun.file/Bun.write with compat/file
+    // // const file = Bun.file(filepath)
+    // // if (result && result.ok) await Bun.write(file, result)
     log.info("refreshing")
     const result = await fetch("https://models.dev/api.json").catch(() => {})
-    if (result && result.ok) await Bun.write(file, result)
+    if (result && result.ok) await write(filepath, result)
   }
 }

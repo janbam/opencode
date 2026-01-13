@@ -6,6 +6,8 @@ import { Global } from "../global"
 import path from "path"
 import os from "os"
 import { z } from "zod"
+// NO-BUN: replaced Bun.file/Bun.write with compat/file
+import { file, write } from "../compat/file"
 
 export namespace App {
   const log = Log.create({ service: "app" })
@@ -52,11 +54,19 @@ export namespace App {
     log.info("git", { git })
 
     const data = path.join(Global.Path.data, "project", git ? directory(git) : "global")
-    const stateFile = Bun.file(path.join(data, APP_JSON))
-    const state = (await stateFile.json().catch(() => ({}))) as {
+    // NO-BUN: replaced Bun.file with compat/file
+    // // const stateFile = Bun.file(path.join(data, APP_JSON))
+    // // const state = (await stateFile.json().catch(() => ({})))
+    // // await stateFile.write(JSON.stringify(state))
+    const stateFilePath = path.join(data, APP_JSON)
+    const stateFile = file(stateFilePath)
+    const state = (await stateFile
+      .text()
+      .then((t) => JSON.parse(t))
+      .catch(() => ({}))) as {
       initialized: number
     }
-    await stateFile.write(JSON.stringify(state))
+    await write(stateFilePath, JSON.stringify(state))
 
     const services = new Map<
       any,
@@ -127,11 +137,13 @@ export namespace App {
   export async function initialize() {
     const { info } = ctx.use()
     info.time.initialized = Date.now()
-    await Bun.write(
+    // NO-BUN: replaced Bun.write with compat/file write
+    // // await Bun.write(path.join(info.path.data, APP_JSON), JSON.stringify(...))
+    await write(
       path.join(info.path.data, APP_JSON),
       JSON.stringify({
         initialized: Date.now(),
-      }),
+      })
     )
   }
 

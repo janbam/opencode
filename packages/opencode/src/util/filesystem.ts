@@ -1,5 +1,7 @@
 import { exists } from "fs/promises"
 import { dirname, join, relative } from "path"
+// NO-BUN: replaced Bun.Glob with compat/glob
+import { Glob } from "../compat/glob"
 
 export namespace Filesystem {
   export function overlaps(a: string, b: string) {
@@ -46,7 +48,10 @@ export namespace Filesystem {
     const result = []
     while (true) {
       try {
-        const glob = new Bun.Glob(pattern)
+        // NO-BUN: replaced Bun.Glob with compat/glob Glob
+        // // const glob = new Bun.Glob(pattern)
+        // // for await (const match of glob.scan({ cwd: current, onlyFiles: true, dot: true })) {
+        const glob = new Glob(pattern)
         for await (const match of glob.scan({
           cwd: current,
           onlyFiles: true,

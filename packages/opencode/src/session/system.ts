@@ -5,6 +5,8 @@ import { Filesystem } from "../util/filesystem"
 import { Config } from "../config/config"
 import path from "path"
 import os from "os"
+// NO-BUN: replaced Bun.file with compat/file
+import { file } from "../compat/file"
 
 import PROMPT_ANTHROPIC from "./prompt/anthropic.txt"
 import PROMPT_BEAST from "./prompt/beast.txt"
@@ -54,17 +56,22 @@ export namespace SystemPrompt {
     const { cwd, root } = App.info().path
     const config = await Config.get()
     const found = []
+    // NO-BUN: replaced Bun.file(x).text() with file(x).text()
+    // // found.push(...matches.map((x) => Bun.file(x).text()))
     for (const item of CUSTOM_FILES) {
       const matches = await Filesystem.findUp(item, cwd, root)
-      found.push(...matches.map((x) => Bun.file(x).text()))
+      found.push(...matches.map((x) => file(x).text()))
     }
+    // NO-BUN: replaced Bun.file().text() with file().text()
+    // // Bun.file(path.join(Global.Path.config, "AGENTS.md")).text().catch(() => ""),
+    // // Bun.file(path.join(os.homedir(), ".claude", "CLAUDE.md")).text().catch(() => ""),
     found.push(
-      Bun.file(path.join(Global.Path.config, "AGENTS.md"))
+      file(path.join(Global.Path.config, "AGENTS.md"))
         .text()
         .catch(() => ""),
     )
     found.push(
-      Bun.file(path.join(os.homedir(), ".claude", "CLAUDE.md"))
+      file(path.join(os.homedir(), ".claude", "CLAUDE.md"))
         .text()
         .catch(() => ""),
     )
@@ -73,7 +80,9 @@ export namespace SystemPrompt {
       for (const instruction of config.instructions) {
         try {
           const matches = await Filesystem.globUp(instruction, cwd, root)
-          found.push(...matches.map((x) => Bun.file(x).text()))
+          // NO-BUN: replaced Bun.file(x).text() with file(x).text()
+          // // found.push(...matches.map((x) => Bun.file(x).text()))
+          found.push(...matches.map((x) => file(x).text()))
         } catch {
           continue // Skip invalid glob patterns
         }
