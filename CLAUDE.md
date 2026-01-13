@@ -42,6 +42,7 @@ cat dev_docs/ROADMAP.md
 
 - `dev_docs/PROGRESS.md` — Task tracker (update every session)
 - `dev_docs/ROADMAP.md` — Full migration plan
+- `dev_docs/ISSUES.md` — **Update immediately when issues arise**
 - `dev_docs/bun-api-replacements.md` — Code examples for each API
 - `dev_docs/migration-architecture.md` — Build system, SEA, pnpm
 
