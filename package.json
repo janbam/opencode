@@ -12,7 +12,8 @@
   "devDependencies": {
     "prettier": "3.5.3",
     "sst": "3.17.8",
-    "tsx": "4.19.4"
+    "tsx": "4.19.4",
+    "vitest": "^4.0.17"
   },
   "repository": {
     "type": "git",

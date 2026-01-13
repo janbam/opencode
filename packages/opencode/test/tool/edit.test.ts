@@ -1,4 +1,5 @@
-import { describe, expect, test } from "bun:test"
+// NO-BUN: Migrated from bun:test to vitest
+import { describe, expect, test } from "vitest"
 import { replace } from "../../src/tool/edit"
 
 interface TestCase {

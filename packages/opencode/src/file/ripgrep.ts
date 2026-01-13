@@ -226,7 +226,8 @@ export namespace Ripgrep {
     if (input.query) commands.push(`${await Fzf.filepath()} --filter=${input.query}`)
     if (input.limit) commands.push(`head -n ${input.limit}`)
     const joined = commands.join(" | ")
-    const result = await $`${{ raw: joined }}`.cwd(input.cwd).nothrow().text()
+    // NO-BUN: replaced $`${{ raw: joined }}` with $.raw(joined)
+    const result = await $.raw(joined).cwd(input.cwd).nothrow().text()
     return result.split("\n").filter(Boolean)
   }
 
@@ -346,12 +347,14 @@ export namespace Ripgrep {
     args.push(input.pattern)
 
     const command = args.join(" ")
-    const result = await $`${{ raw: command }}`.cwd(input.cwd).quiet().nothrow()
+    // NO-BUN: replaced $`${{ raw: command }}` with $.raw(command)
+    const result = await $.raw(command).cwd(input.cwd).quiet().nothrow()
     if (result.exitCode !== 0) {
       return []
     }
 
-    const lines = result.text().trim().split("\n").filter(Boolean)
+    // NO-BUN: result.stdout is Buffer, convert to string
+    const lines = result.stdout.toString().trim().split("\n").filter(Boolean)
     // Parse JSON lines from ripgrep output
 
     return lines

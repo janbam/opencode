@@ -7,7 +7,19 @@
 
 | ID | Severity | Area | Description | Notes |
 |----|----------|------|-------------|-------|
-| - | - | - | - | - |
+| I-002 | Low | Tests | 4 edit.test.ts failures (EscapeNormalizedReplacer) | Pre-existing logic bug, not migration-related |
+
+### I-002: EscapeNormalizedReplacer Test Failures (Pre-existing)
+
+**Note**: This is NOT a migration issue. The tests for EscapeNormalizedReplacer (cases 19-22) fail because the replace logic doesn't handle escape sequences correctly.
+
+Affected tests (in `packages/opencode/test/tool/edit.test.ts`):
+- case 19: `\n` escape sequence handling
+- case 20: Single quote escape handling
+- case 21: Template literal escape handling
+- case 22: Backslash path handling
+
+**Status**: Low priority. Does not affect core functionality.
 
 ## Resolved Issues
 

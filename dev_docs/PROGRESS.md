@@ -6,7 +6,7 @@
 >
 > **SCOPE: Linux only, local deployment only, no publishing**
 
-## Current Status: 🟢 Phase 4 Complete, Phase 6 (Testing) Next
+## Current Status: 🟡 Phase 6 (Testing) 90% — 42/46 tests passing
 
 ### Session Log
 
@@ -21,6 +21,7 @@
 | 2025-01-13 | 3e7c41f8 | **Phase 3 Complete**: TUI resolver, .txt imports, zod-openapi fix, dev mode working |
 | 2025-01-13 | ff8f4cb8 | **Phase 4 Started**: Build script created, zod-openapi centralized, esbuild working (needs import resolution fix) |
 | 2025-01-13 | 126f8ba7 | **Phase 4 Complete**: Switched to tsx-based build (no bundling), I-001 resolved |
+| 2025-01-13 | 126f8ba7 | **Phase 6 Started**: vitest migration, $.escape()/.raw() compat, 42/46 tests pass |
 
 ---
 
@@ -33,7 +34,7 @@
 | Phase 3: TUI Integration | 🟢 Complete | 100% |
 | Phase 4: Build System | 🟢 Complete | 100% |
 | Phase 5: Publishing | ⏭️ Skipped | N/A |
-| Phase 6: Testing | 🔴 Not Started | 0% |
+| Phase 6: Testing | 🟡 In Progress | 90% |
 | Phase 7: Cleanup | 🔴 Not Started | 0% |
 
 ---
@@ -144,9 +145,12 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 
 ### Phase 6: Testing (Linux Only)
 
-- [ ] Unit tests passing
-- [ ] Integration tests
-- [ ] ~~Platform testing~~ (Linux x64 only)
+- [x] Migrate tests from `bun:test` to `vitest`
+- [x] Add `$.escape()` and `$.raw()` to compat/shell.ts
+- [x] Fix test patterns for ripgrep compatibility
+- [x] Unit tests: 42/46 passing (4 pre-existing failures, see I-002)
+- [ ] Integration tests (manual verification)
+- ~~Platform testing~~ (Linux x64 only)
 
 ### Phase 7: Cleanup
 

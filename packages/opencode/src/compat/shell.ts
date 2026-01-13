@@ -158,3 +158,46 @@ export function $(strings: TemplateStringsArray, ...values: unknown[]): ShellCom
     quiet: false,
   })
 }
+
+/**
+ * Escape a string for safe use in shell commands
+ *
+ * NO-BUN: Replaces Bun's $.escape() function
+ *
+ * @example
+ * const safePath = $.escape(userProvidedPath)
+ * await $`ls ${safePath}`
+ */
+$.escape = function escape(str: string): string {
+  // If the string is already single-quoted, return as-is
+  if (/^'[^']*'$/.test(str)) {
+    return str
+  }
+
+  // If the string is safe (alphanumeric, dash, underscore, slash, dot), return as-is
+  if (/^[a-zA-Z0-9_\-./]+$/.test(str)) {
+    return str
+  }
+
+  // Otherwise, wrap in single quotes and escape any single quotes within
+  // Replace ' with '\'' (end quote, escaped quote, start quote)
+  return "'" + str.replace(/'/g, "'\\''") + "'"
+}
+
+/**
+ * Create a shell command from a raw command string
+ *
+ * NO-BUN: Replaces Bun's $`${{ raw: "..." }}` pattern
+ *
+ * @example
+ * const cmd = "ls -la | head -n 5"
+ * await $.raw(cmd).text()
+ */
+$.raw = function raw(command: string): ShellCommand {
+  // Create a fake template strings array with just the command
+  const strings = Object.assign([command], { raw: [command] }) as TemplateStringsArray
+  return createShellCommand(strings, [], {
+    shouldThrow: true,
+    quiet: false,
+  })
+}

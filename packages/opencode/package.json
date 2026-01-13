@@ -7,7 +7,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "dev": "tsx ./src/index.ts",
-    "build": "tsx ./script/build.ts"
+    "build": "tsx ./script/build.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "bin": {
     "opencode": "./bin/opencode"

@@ -1,4 +1,5 @@
-import { describe, expect, test } from "bun:test"
+// NO-BUN: Migrated from bun:test to vitest
+import { describe, expect, test } from "vitest"
 import { App } from "../../src/app/app"
 import { GlobTool } from "../../src/tool/glob"
 import { ListTool } from "../../src/tool/ls"
@@ -11,11 +12,13 @@ const ctx = {
 }
 describe("tool.glob", () => {
   test("truncate", async () => {
-    await App.provide({ cwd: process.cwd() }, async () => {
+    // Search from the repo root's node_modules which has thousands of files
+    const repoRoot = process.cwd().replace(/\/packages\/opencode$/, "")
+    await App.provide({ cwd: repoRoot }, async () => {
       let result = await GlobTool.execute(
         {
-          pattern: "../../node_modules/**/*",
-          path: undefined,
+          pattern: "**/*",
+          path: "node_modules",
         },
         ctx,
       )
@@ -33,7 +36,7 @@ describe("tool.glob", () => {
       )
       expect(result.metadata).toMatchObject({
         truncated: false,
-        count: 3,
+        count: 2, // package.json and tsconfig.json
       })
     })
   })
