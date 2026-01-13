@@ -6,7 +6,7 @@
 >
 > **SCOPE: Linux only, local deployment only, no publishing**
 
-## Current Status: 🟢 Phase 7 (Cleanup) Complete — Migration Done
+## Current Status: 🟡 Phase 8 (E2E Testing) — Runtime issues discovered
 
 ### Session Log
 
@@ -23,6 +23,7 @@
 | 2025-01-13 | 126f8ba7 | **Phase 4 Complete**: Switched to tsx-based build (no bundling), I-001 resolved |
 | 2025-01-13 | 126f8ba7 | **Phase 6 Started**: vitest migration, $.escape()/.raw() compat, 42/46 tests pass |
 | 2025-01-13 | f5bc3052 | **Phase 7 Complete**: Removed bunfig.toml, marked publish.ts as unmaintained, verified build/tests |
+| 2025-01-13 | f5bc3052 | **Phase 8 Started**: Fixed ResolveMessage error, found Server.address() issue |
 
 ---
 
@@ -37,6 +38,7 @@
 | Phase 5: Publishing | ⏭️ Skipped | N/A |
 | Phase 6: Testing | 🟢 Complete | 100% |
 | Phase 7: Cleanup | 🟢 Complete | 100% |
+| Phase 8: E2E Testing | 🟡 In Progress | 20% |
 
 ---
 
@@ -159,6 +161,16 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 - [x] Remove bunfig.toml — Deleted
 - [x] Mark publish.ts as unmaintained (out of scope)
 - [x] Final review — All verified, no active Bun code in src/
+
+### Phase 8: E2E Testing (Runtime Verification)
+
+- [x] Fixed ResolveMessage error (Bun-specific type in index.ts)
+- [x] Fixed TUI resolution order (OPENCODE_TUI_PATH priority)
+- [ ] Fix Server.address() returning null (see I-003)
+- [ ] Verify TUI launches correctly with built binary
+- [ ] Test full app flow: CLI → Server → TUI communication
+- [ ] Test `pnpm dev` flow with `go run`
+- [ ] Test `./dist/opencode` flow with built TUI
 
 ---
 

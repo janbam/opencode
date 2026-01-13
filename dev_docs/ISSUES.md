@@ -8,6 +8,28 @@
 | ID | Severity | Area | Description | Notes |
 |----|----------|------|-------------|-------|
 | I-002 | Low | Tests | 4 edit.test.ts failures (EscapeNormalizedReplacer) | Pre-existing logic bug, not migration-related |
+| I-003 | High | Runtime | Server.address() returns null on startup | Blocks TUI launch, needs investigation |
+
+### I-003: Server.address() Returns Null
+
+**Symptom:** When running `./dist/opencode .` or `pnpm dev`, the app hangs with a blinking cursor.
+
+**Error (from `--print-logs`):**
+```
+ERROR service=default name=TypeError message=Cannot read properties of null (reading 'address') fatal
+```
+
+**Location:** `src/server/server.ts:754`
+```typescript
+const nodeServer = serve({ ... })
+const address = nodeServer.address() as AddressInfo  // <- returns null
+```
+
+**Root Cause:** The `@hono/node-server` `serve()` function returns immediately but the server may not be listening yet. `nodeServer.address()` returns `null` until the server is actually bound.
+
+**Potential Fix:** Wait for the 'listening' event or use a callback pattern.
+
+**Discovered:** Session f5bc3052
 
 ### I-002: EscapeNormalizedReplacer Test Failures (Pre-existing)
 

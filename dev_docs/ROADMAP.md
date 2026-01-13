@@ -2,7 +2,7 @@
 
 > Branch: `no-bun`
 > Target: Node.js 22+ LTS
-> Status: ✅ Migration Complete
+> Status: 🟡 Phase 8 — E2E Testing
 >
 > **SCOPE: Linux only, local deployment only, no publishing**
 
@@ -157,12 +157,36 @@ Create `packages/opencode/src/compat/` with Node.js implementations:
 
 ## Phase 7: Cleanup & Documentation
 
-- [ ] Remove all Bun-specific code
-- [ ] Update README.md
+- [x] Remove all Bun-specific code
+- [x] Update README.md
 - [ ] Update CONTRIBUTING.md if exists
-- [ ] Remove `bunfig.toml`
+- [x] Remove `bunfig.toml`
 - [ ] Clean up unused dependencies
-- [ ] Final review of all changes
+- [x] Final review of all changes
+
+---
+
+## Phase 8: E2E Testing (Runtime Verification)
+
+> **Added after discovering runtime issues during Phase 7 testing**
+
+Unit tests pass but actual app execution reveals additional issues that need fixing.
+
+### 8.1 Fix Runtime Issues
+- [ ] Fix Server.address() returning null (I-003)
+  - `@hono/node-server` serve() is async — need to wait for 'listening' event
+- [ ] Fix any other runtime errors discovered
+
+### 8.2 Verify Full App Flow
+- [ ] `pnpm dev` → TUI launches via `go run`
+- [ ] `pnpm build && ./dist/opencode` → TUI launches via built binary
+- [ ] Server starts and accepts connections
+- [ ] TUI communicates with server correctly
+- [ ] Basic operations work (start session, send message)
+
+### 8.3 Edge Cases
+- [ ] Graceful error handling when TUI not found
+- [ ] Proper cleanup on exit
 
 ---
 
