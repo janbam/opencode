@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx packages/opencode/src/index.ts",
+    "dev": "tsx watch packages/opencode/src/index.ts",
+    "build": "pnpm --filter opencode build",
+    "test": "pnpm --filter opencode test",
     "typecheck": "pnpm -r run typecheck",
     "stainless": "./scripts/stainless",
     "postinstall": "./scripts/hooks"
