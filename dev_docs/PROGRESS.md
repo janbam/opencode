@@ -16,6 +16,7 @@
 | 2025-01-13 | 7d0f9a46 | **Phase 1 Complete** + **Compat Layer Complete**: pnpm, deps, tsconfig, src/compat/* |
 | 2025-01-13 | 8bae2780 | **All tool files migrated** + **All file/* migrated**: 11 files total |
 | 2025-01-13 | aff02b35 | **All easy file migrations**: session, auth, config, util, storage, global, app, provider: 12 files |
+| 2025-01-13 | c3737d80 | **Medium files migrated**: format/*, lsp/*, installation, snapshot: 6 files |
 
 ---
 
@@ -24,7 +25,7 @@
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Phase 1: Foundation Setup | 🟢 Complete | 100% |
-| Phase 2: API Replacements | 🟡 In Progress | 85% |
+| Phase 2: API Replacements | 🟡 In Progress | 91% |
 | Phase 3: TUI Integration | 🔴 Not Started | 0% |
 | Phase 4: Build System | 🔴 Not Started | 0% |
 | Phase 5: Publishing | 🔴 Not Started | 0% |
@@ -105,12 +106,12 @@
 | src/cli/cmd/run.ts | 🔴 | spawn |
 | src/cli/cmd/generate.ts | 🔴 | TBD |
 | src/cli/ui.ts | 🔴 | TBD |
-| src/lsp/server.ts | 🔴 | $, which, spawn, file |
-| src/lsp/client.ts | 🔴 | file |
-| src/format/formatter.ts | 🔴 | which |
-| src/format/index.ts | 🔴 | spawn |
-| src/installation/index.ts | 🔴 | $ |
-| src/snapshot/index.ts | 🔴 | $ |
+| src/lsp/server.ts | 🟢 | $, which, spawn, file, resolve → compat |
+| src/lsp/client.ts | 🟢 | file → compat |
+| src/format/formatter.ts | 🟢 | which, file → compat |
+| src/format/index.ts | 🟢 | spawn → compat |
+| src/installation/index.ts | 🟢 | $ → compat |
+| src/snapshot/index.ts | 🟢 | $ → compat |
 
 Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 
@@ -159,25 +160,17 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 ## Notes for Next Session
 
 ### Where to Start
-23 of 33 files migrated (70%). 10 files remaining.
+29 of 33 files migrated (88%). 4 files remaining.
 
-### Remaining Files (10)
+### Remaining Files (4)
 
-1. **Medium** (multiple APIs):
-   - `src/format/formatter.ts` - Bun.which
-   - `src/format/index.ts` - Bun.spawn
-   - `src/lsp/server.ts` - $, which, spawn, file
-   - `src/lsp/client.ts` - file
-   - `src/installation/index.ts` - $
-   - `src/snapshot/index.ts` - $
-
-2. **Complex** (critical/many APIs):
+1. **Complex** (critical/many APIs):
    - `src/server/server.ts` - Bun.serve → @hono/node-server
    - `src/cli/cmd/tui.ts` - **CRITICAL** - embeddedFiles, spawn (needs TUI download logic)
-   - `src/cli/cmd/run.ts` - spawn
-   - `src/cli/cmd/generate.ts` - TBD
-   - `src/cli/ui.ts` - TBD
-   - `src/bun/index.ts` - may be removed entirely
+   - `src/cli/cmd/run.ts` - Bun.stdin
+   - `src/cli/cmd/generate.ts` - Bun.write
+   - `src/cli/ui.ts` - Bun.stderr.write, Bun.color
+   - `src/bun/index.ts` - may be removed entirely (check dependencies first)
 
 ### Key Decisions Made
 - Using `tsx` for development

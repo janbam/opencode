@@ -1,5 +1,7 @@
 import path from "path"
-import { $ } from "bun"
+// NO-BUN: replaced $ from "bun" with compat/shell
+// // import { $ } from "bun"
+import { $ } from "../compat"
 import { z } from "zod"
 import { NamedError } from "../util/error"
 import { Bus } from "../bus"

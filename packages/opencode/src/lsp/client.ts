@@ -9,6 +9,10 @@ import z from "zod"
 import type { LSPServer } from "./server"
 import { NamedError } from "../util/error"
 import { withTimeout } from "../util/timeout"
+// NO-BUN: replaced Bun.file with compat/readText
+// // const file = Bun.file(input.path)
+// // const text = await file.text()
+import { readText } from "../compat"
 
 export namespace LSPClient {
   const log = Log.create({ service: "lsp.client" })
@@ -124,8 +128,7 @@ export namespace LSPClient {
       notify: {
         async open(input: { path: string }) {
           input.path = path.isAbsolute(input.path) ? input.path : path.resolve(app.path.cwd, input.path)
-          const file = Bun.file(input.path)
-          const text = await file.text()
+          const text = await readText(input.path)
           const version = files[input.path]
           if (version !== undefined) {
             diagnostics.delete(input.path)

@@ -1,7 +1,11 @@
 import { App } from "../app/app"
-import { BunProc } from "../bun"
 import { Filesystem } from "../util/filesystem"
 import path from "path"
+// NO-BUN: replaced Bun.which with compat/which, Bun.file().exists() with compat/exists
+// // import { BunProc } from "../bun"
+// // Bun.which("gofmt") !== null
+// // await Bun.file(path).exists()
+import { which, exists } from "../compat"
 
 export interface Info {
   name: string
@@ -16,7 +20,7 @@ export const gofmt: Info = {
   command: ["gofmt", "-w", "$FILE"],
   extensions: [".go"],
   async enabled() {
-    return Bun.which("gofmt") !== null
+    return (await which("gofmt")) !== null
   },
 }
 
@@ -25,16 +29,14 @@ export const mix: Info = {
   command: ["mix", "format", "$FILE"],
   extensions: [".ex", ".exs", ".eex", ".heex", ".leex", ".neex", ".sface"],
   async enabled() {
-    return Bun.which("mix") !== null
+    return (await which("mix")) !== null
   },
 }
 
 export const prettier: Info = {
   name: "prettier",
-  command: [BunProc.which(), "x", "prettier", "--write", "$FILE"],
-  environment: {
-    BUN_BE_BUN: "1",
-  },
+  // NO-BUN: Use npx instead of bun x for running prettier
+  command: ["npx", "prettier", "--write", "$FILE"],
   extensions: [
     ".js",
     ".jsx",
@@ -67,7 +69,7 @@ export const prettier: Info = {
     const app = App.info()
     const nms = await Filesystem.findUp("node_modules", app.path.cwd, app.path.root)
     for (const item of nms) {
-      if (await Bun.file(path.join(item, ".bin", "prettier")).exists()) return true
+      if (await exists(path.join(item, ".bin", "prettier"))) return true
     }
     return false
   },
@@ -78,7 +80,7 @@ export const zig: Info = {
   command: ["zig", "fmt", "$FILE"],
   extensions: [".zig", ".zon"],
   async enabled() {
-    return Bun.which("zig") !== null
+    return (await which("zig")) !== null
   },
 }
 
@@ -87,7 +89,7 @@ export const clang: Info = {
   command: ["clang-format", "-i", "$FILE"],
   extensions: [".c", ".cc", ".cpp", ".cxx", ".c++", ".h", ".hh", ".hpp", ".hxx", ".h++", ".ino", ".C", ".H"],
   async enabled() {
-    return Bun.which("clang-format") !== null
+    return (await which("clang-format")) !== null
   },
 }
 
@@ -96,7 +98,7 @@ export const ktlint: Info = {
   command: ["ktlint", "-F", "$FILE"],
   extensions: [".kt", ".kts"],
   async enabled() {
-    return Bun.which("ktlint") !== null
+    return (await which("ktlint")) !== null
   },
 }
 
@@ -105,7 +107,7 @@ export const ruff: Info = {
   command: ["ruff", "format", "$FILE"],
   extensions: [".py", ".pyi"],
   async enabled() {
-    return Bun.which("ruff") !== null
+    return (await which("ruff")) !== null
   },
 }
 
@@ -114,7 +116,7 @@ export const rubocop: Info = {
   command: ["rubocop", "--autocorrect", "$FILE"],
   extensions: [".rb", ".rake", ".gemspec", ".ru"],
   async enabled() {
-    return Bun.which("rubocop") !== null
+    return (await which("rubocop")) !== null
   },
 }
 
@@ -123,7 +125,7 @@ export const standardrb: Info = {
   command: ["standardrb", "--fix", "$FILE"],
   extensions: [".rb", ".rake", ".gemspec", ".ru"],
   async enabled() {
-    return Bun.which("standardrb") !== null
+    return (await which("standardrb")) !== null
   },
 }
 
@@ -132,6 +134,6 @@ export const htmlbeautifier: Info = {
   command: ["htmlbeautifier", "$FILE"],
   extensions: [".erb", ".html.erb"],
   async enabled() {
-    return Bun.which("htmlbeautifier") !== null
+    return (await which("htmlbeautifier")) !== null
   },
 }

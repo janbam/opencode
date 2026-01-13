@@ -40,8 +40,8 @@ export interface SpawnOptions {
 }
 
 export interface SpawnResult {
-  /** Promise that resolves when process exits */
-  readonly exited: Promise<void>
+  /** Promise that resolves to exit code when process exits (matches Bun.spawn behavior) */
+  readonly exited: Promise<number>
   /** Process exit code (available after exited resolves) */
   readonly exitCode: number | null
   /** Standard output stream (when stdout: 'pipe') */
@@ -120,8 +120,8 @@ export function spawn(options: SpawnOptions): SpawnResult {
   let stdoutText = ""
   let stderrText = ""
 
-  // Create the exited promise
-  const exited = subprocess.then((result) => {
+  // Create the exited promise - returns exit code to match Bun.spawn behavior
+  const exited = subprocess.then((result): number => {
     exitCode = result.exitCode ?? null
     stdoutText = String(result.stdout ?? "")
     stderrText = String(result.stderr ?? "")
@@ -130,6 +130,8 @@ export function spawn(options: SpawnOptions): SpawnResult {
     if (options.onExit) {
       options.onExit(exitCode)
     }
+
+    return exitCode ?? 0
   })
 
   // Convert streams for compatibility

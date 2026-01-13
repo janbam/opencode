@@ -1,5 +1,7 @@
 import { App } from "../app/app"
-import { $ } from "bun"
+// NO-BUN: replaced $ from "bun" with compat/shell
+// // import { $ } from "bun"
+import { $ } from "../compat"
 import path from "path"
 import fs from "fs/promises"
 import { Ripgrep } from "../file/ripgrep"

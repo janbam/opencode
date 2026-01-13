@@ -3,6 +3,9 @@ import { Bus } from "../bus"
 import { File } from "../file"
 import { Log } from "../util/log"
 import path from "path"
+// NO-BUN: replaced Bun.spawn with compat/spawn
+// // Bun.spawn({ cmd, cwd, env, stdout, stderr })
+import { spawn } from "../compat"
 
 import * as Formatter from "./formatter"
 
@@ -46,7 +49,7 @@ export namespace Format {
 
       for (const item of await getFormatter(ext)) {
         log.info("running", { command: item.command })
-        const proc = Bun.spawn({
+        const proc = spawn({
           cmd: item.command.map((x) => x.replace("$FILE", file)),
           cwd: App.info().path.cwd,
           env: item.environment,

@@ -1,12 +1,15 @@
-import { spawn, type ChildProcessWithoutNullStreams } from "child_process"
+import { spawn as nodeSpawn, type ChildProcessWithoutNullStreams } from "child_process"
 import type { App } from "../app/app"
 import path from "path"
 import { Global } from "../global"
 import { Log } from "../util/log"
-import { BunProc } from "../bun"
-import { $ } from "bun"
 import fs from "fs/promises"
 import { Filesystem } from "../util/filesystem"
+// NO-BUN: replaced Bun APIs with compat layer
+// // import { BunProc } from "../bun"
+// // import { $ } from "bun"
+// // Bun.resolve(), Bun.which(), Bun.spawn(), Bun.file()
+import { $, which, spawn, resolve, exists, write } from "../compat"
 
 export namespace LSPServer {
   const log = Log.create({ service: "lsp.server" })
@@ -45,13 +48,13 @@ export namespace LSPServer {
     root: NearestRoot(["tsconfig.json", "package.json", "jsconfig.json"]),
     extensions: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts"],
     async spawn(app, root) {
-      const tsserver = await Bun.resolve("typescript/lib/tsserver.js", app.path.cwd).catch(() => {})
+      // NO-BUN: Use compat/resolve instead of Bun.resolve, npx instead of bun x
+      const tsserver = await resolve("typescript/lib/tsserver.js", app.path.cwd).catch(() => {})
       if (!tsserver) return
-      const proc = spawn(BunProc.which(), ["x", "typescript-language-server", "--stdio"], {
+      const proc = nodeSpawn("npx", ["typescript-language-server", "--stdio"], {
         cwd: root,
         env: {
           ...process.env,
-          BUN_BE_BUN: "1",
         },
       })
       return {
@@ -74,13 +77,14 @@ export namespace LSPServer {
     },
     extensions: [".go"],
     async spawn(_, root) {
-      let bin = Bun.which("gopls", {
-        PATH: process.env["PATH"] + ":" + Global.Path.bin,
+      // NO-BUN: Use compat/which and compat/spawn
+      let bin = await which("gopls", {
+        path: process.env["PATH"] + ":" + Global.Path.bin,
       })
       if (!bin) {
-        if (!Bun.which("go")) return
+        if (!(await which("go"))) return
         log.info("installing gopls")
-        const proc = Bun.spawn({
+        const proc = spawn({
           cmd: ["go", "install", "golang.org/x/tools/gopls@latest"],
           env: { ...process.env, GOBIN: Global.Path.bin },
           stdout: "pipe",
@@ -92,13 +96,14 @@ export namespace LSPServer {
           log.error("Failed to install gopls")
           return
         }
-        bin = path.join(Global.Path.bin, "gopls" + (process.platform === "win32" ? ".exe" : ""))
+        // NO-BUN: Linux only, no .exe extension needed
+        bin = path.join(Global.Path.bin, "gopls")
         log.info(`installed gopls`, {
           bin,
         })
       }
       return {
-        process: spawn(bin!, {
+        process: nodeSpawn(bin!, {
           cwd: root,
         }),
       }
@@ -110,18 +115,19 @@ export namespace LSPServer {
     root: NearestRoot(["Gemfile"]),
     extensions: [".rb", ".rake", ".gemspec", ".ru"],
     async spawn(_, root) {
-      let bin = Bun.which("ruby-lsp", {
-        PATH: process.env["PATH"] + ":" + Global.Path.bin,
+      // NO-BUN: Use compat/which and compat/spawn
+      let bin = await which("ruby-lsp", {
+        path: process.env["PATH"] + ":" + Global.Path.bin,
       })
       if (!bin) {
-        const ruby = Bun.which("ruby")
-        const gem = Bun.which("gem")
+        const ruby = await which("ruby")
+        const gem = await which("gem")
         if (!ruby || !gem) {
           log.info("Ruby not found, please install Ruby first")
           return
         }
         log.info("installing ruby-lsp")
-        const proc = Bun.spawn({
+        const proc = spawn({
           cmd: ["gem", "install", "ruby-lsp", "--bindir", Global.Path.bin],
           stdout: "pipe",
           stderr: "pipe",
@@ -132,13 +138,14 @@ export namespace LSPServer {
           log.error("Failed to install ruby-lsp")
           return
         }
-        bin = path.join(Global.Path.bin, "ruby-lsp" + (process.platform === "win32" ? ".exe" : ""))
+        // NO-BUN: Linux only, no .exe extension needed
+        bin = path.join(Global.Path.bin, "ruby-lsp")
         log.info(`installed ruby-lsp`, {
           bin,
         })
       }
       return {
-        process: spawn(bin!, ["--stdio"], {
+        process: nodeSpawn(bin!, ["--stdio"], {
           cwd: root,
         }),
       }
@@ -150,11 +157,11 @@ export namespace LSPServer {
     extensions: [".py", ".pyi"],
     root: NearestRoot(["pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile", "pyrightconfig.json"]),
     async spawn(_, root) {
-      const proc = spawn(BunProc.which(), ["x", "pyright-langserver", "--stdio"], {
+      // NO-BUN: Use npx instead of bun x
+      const proc = nodeSpawn("npx", ["pyright-langserver", "--stdio"], {
         cwd: root,
         env: {
           ...process.env,
-          BUN_BE_BUN: "1",
         },
       })
       return {
@@ -168,18 +175,20 @@ export namespace LSPServer {
     extensions: [".ex", ".exs"],
     root: NearestRoot(["mix.exs", "mix.lock"]),
     async spawn(_, root) {
-      let binary = Bun.which("elixir-ls")
+      // NO-BUN: Use compat layer for which, exists, write, $
+      let binary = await which("elixir-ls")
       if (!binary) {
         const elixirLsPath = path.join(Global.Path.bin, "elixir-ls")
+        // NO-BUN: Linux only, no .bar extension needed
         binary = path.join(
           Global.Path.bin,
           "elixir-ls-master",
           "release",
-          process.platform === "win32" ? "language_server.bar" : "language_server.sh",
+          "language_server.sh",
         )
 
-        if (!(await Bun.file(binary).exists())) {
-          const elixir = Bun.which("elixir")
+        if (!(await exists(binary))) {
+          const elixir = await which("elixir")
           if (!elixir) {
             log.error("elixir is required to run elixir-ls")
             return
@@ -190,7 +199,9 @@ export namespace LSPServer {
           const response = await fetch("https://github.com/elixir-lsp/elixir-ls/archive/refs/heads/master.zip")
           if (!response.ok) return
           const zipPath = path.join(Global.Path.bin, "elixir-ls.zip")
-          await Bun.file(zipPath).write(response)
+          // NO-BUN: Use compat/write with Buffer from response
+          const buffer = Buffer.from(await response.arrayBuffer())
+          await write(zipPath, buffer)
 
           await $`unzip -o -q ${zipPath}`.cwd(Global.Path.bin).nothrow()
 
@@ -211,7 +222,7 @@ export namespace LSPServer {
       }
 
       return {
-        process: spawn(binary, {
+        process: nodeSpawn(binary, {
           cwd: root,
         }),
       }
@@ -223,12 +234,13 @@ export namespace LSPServer {
     extensions: [".zig", ".zon"],
     root: NearestRoot(["build.zig"]),
     async spawn(_, root) {
-      let bin = Bun.which("zls", {
-        PATH: process.env["PATH"] + ":" + Global.Path.bin,
+      // NO-BUN: Use compat layer for which, exists, write, $
+      let bin = await which("zls", {
+        path: process.env["PATH"] + ":" + Global.Path.bin,
       })
 
       if (!bin) {
-        const zig = Bun.which("zig")
+        const zig = await which("zig")
         if (!zig) {
           log.error("Zig is required to use zls. Please install Zig first.")
           return
@@ -244,36 +256,23 @@ export namespace LSPServer {
 
         const release = await releaseResponse.json()
 
-        const platform = process.platform
+        // NO-BUN: Linux only, simplified platform detection
         const arch = process.arch
-        let assetName = ""
-
         let zlsArch: string = arch
         if (arch === "arm64") zlsArch = "aarch64"
         else if (arch === "x64") zlsArch = "x86_64"
         else if (arch === "ia32") zlsArch = "x86"
 
-        let zlsPlatform: string = platform
-        if (platform === "darwin") zlsPlatform = "macos"
-        else if (platform === "win32") zlsPlatform = "windows"
-
-        const ext = platform === "win32" ? "zip" : "tar.xz"
-
-        assetName = `zls-${zlsArch}-${zlsPlatform}.${ext}`
+        const assetName = `zls-${zlsArch}-linux.tar.xz`
 
         const supportedCombos = [
           "zls-x86_64-linux.tar.xz",
-          "zls-x86_64-macos.tar.xz",
-          "zls-x86_64-windows.zip",
           "zls-aarch64-linux.tar.xz",
-          "zls-aarch64-macos.tar.xz",
-          "zls-aarch64-windows.zip",
           "zls-x86-linux.tar.xz",
-          "zls-x86-windows.zip",
         ]
 
         if (!supportedCombos.includes(assetName)) {
-          log.error(`Platform ${platform} and architecture ${arch} is not supported by zls`)
+          log.error(`Architecture ${arch} is not supported by zls on Linux`)
           return
         }
 
@@ -291,32 +290,28 @@ export namespace LSPServer {
         }
 
         const tempPath = path.join(Global.Path.bin, assetName)
-        await Bun.file(tempPath).write(downloadResponse)
+        // NO-BUN: Use compat/write with Buffer from response
+        const buffer = Buffer.from(await downloadResponse.arrayBuffer())
+        await write(tempPath, buffer)
 
-        if (ext === "zip") {
-          await $`unzip -o -q ${tempPath}`.cwd(Global.Path.bin).nothrow()
-        } else {
-          await $`tar -xf ${tempPath}`.cwd(Global.Path.bin).nothrow()
-        }
+        await $`tar -xf ${tempPath}`.cwd(Global.Path.bin).nothrow()
 
         await fs.rm(tempPath, { force: true })
 
-        bin = path.join(Global.Path.bin, "zls" + (platform === "win32" ? ".exe" : ""))
+        bin = path.join(Global.Path.bin, "zls")
 
-        if (!(await Bun.file(bin).exists())) {
+        if (!(await exists(bin))) {
           log.error("Failed to extract zls binary")
           return
         }
 
-        if (platform !== "win32") {
-          await $`chmod +x ${bin}`.nothrow()
-        }
+        await $`chmod +x ${bin}`.nothrow()
 
         log.info(`installed zls`, { bin })
       }
 
       return {
-        process: spawn(bin, {
+        process: nodeSpawn(bin, {
           cwd: root,
         }),
       }
