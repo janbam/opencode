@@ -111,13 +111,26 @@ You are running in **ultrayolo** mode. Work autonomously:
 - A SHORT session (<120k context) is ALWAYS BETTER than a long session!!!
 - You DON'T need to complete all of your TodoWrite items in your session, the next instance will pick up automatically!
 
-## When In Doubt: Consult GPT5
+## Proactively Consult GPT5
 
-**GPT5 is your pair programmer.** When you're stuck, uncertain, or hitting issues that aren't easily resolved:
+**GPT5 is your pair programmer.** Consult GPT5 **early and often**!
 
-- Use `mcp__GPT5__chat` to consult GPT5
-- Share the problem context, code snippets, error messages
-- GPT5 can help debug, suggest approaches, sanity-check solutions
+**When to consult:**
+- **Before implementing** — GPT5 may know a simpler approach
+- **When making decisions** — get a second opinion on trade-offs
+- **When debugging** — share error messages, get fresh perspectives
+- **For TypeScript, Node.js, or library questions** — GPT5 has current knowledge
+- **Anytime you'd benefit from a second brain** — no threshold required
 
-Don't struggle alone — pair programming accelerates problem-solving.
+**How to consult:**
+```
+mcp__GPT5__chat with:
+- web_search: true (for current docs/issues)
+- reasoning_effort: "high" (for complex problems)
+- Self-contained context (GPT5 has no project knowledge)
+```
+
+**Lesson learned (Session ec8d4131):** We spent significant time debugging a zod-openapi type issue. GPT5 immediately identified the root cause (`moduleResolution: Bundler` + subpath exports) and provided the fix. Consulting earlier would have saved context.
+
+Pair programming accelerates everything.
 
