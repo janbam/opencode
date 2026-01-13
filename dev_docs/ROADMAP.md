@@ -3,6 +3,8 @@
 > Branch: `no-bun`
 > Target: Node.js 22+ LTS
 > Status: Planning Complete, Implementation Not Started
+>
+> **SCOPE: Linux only, local deployment only, no publishing**
 
 ## Overview
 
@@ -102,27 +104,19 @@ Create `packages/opencode/src/compat/` with Node.js implementations:
 
 ---
 
-## Phase 3: TUI Integration
+## Phase 3: TUI Integration (Download Approach)
 
-### Option A: Node SEA with Embedded TUI (Recommended)
-
-- [ ] Create `sea-config.json` template
-- [ ] Implement `ensureTui()` using `node:sea` API
-- [ ] Update `src/cli/cmd/tui.ts` to use SEA assets
-- [ ] Create build script for SEA blob generation
-- [ ] Test extraction and execution on each platform
-
-### Option B: Download TUI on First Run
+> **Decision: Download TUI on first run** (not embedded via SEA)
 
 - [ ] Create `src/tui/downloader.ts`
 - [ ] Implement checksum verification
 - [ ] Use `env-paths` for cache location
-- [ ] Handle platform/arch detection
+- [ ] ~~Handle platform/arch detection~~ (Linux x64 only)
 - [ ] Add progress indicator for download
 
 ---
 
-## Phase 4: Build System
+## Phase 4: Build System (Linux Only)
 
 ### 4.1 Development Build
 - [ ] Verify `tsx watch` works correctly
@@ -130,39 +124,20 @@ Create `packages/opencode/src/compat/` with Node.js implementations:
 - [ ] Ensure hot reload works
 
 ### 4.2 Production Build
-- [ ] Create esbuild config for CJS output
-- [ ] Create SEA config per platform
-- [ ] Write `scripts/build.ts` for full build pipeline
-- [ ] Test SEA injection with postject
-
-### 4.3 Cross-Platform Builds
-- [ ] Set up GitHub Actions matrix
-- [ ] Build Go TUI per platform
-- [ ] Build Node SEA per platform
-- [ ] Sign macOS binary
-- [ ] Sign Windows binary
+- [ ] Create esbuild config for bundling
+- [ ] Write `scripts/build.ts` for build pipeline
+- [ ] ~~SEA config~~ (skipped — using download approach)
+- [ ] ~~Cross-platform builds~~ (skipped — Linux only)
 
 ---
 
-## Phase 5: Publishing & Distribution
+## Phase 5: Publishing — SKIPPED
 
-### 5.1 npm Publishing
-- [ ] Update `publish.ts` for Node.js build
-- [ ] Create platform-specific packages
-- [ ] Test npm install on each platform
-
-### 5.2 GitHub Releases
-- [ ] Generate release assets
-- [ ] Update release notes script
-
-### 5.3 Package Managers
-- [ ] Update Homebrew formula
-- [ ] Update AUR PKGBUILD
-- [ ] Test installation via each method
+> **Not needed** — local deployment only, no npm/GitHub/Homebrew/AUR
 
 ---
 
-## Phase 6: Testing & Validation
+## Phase 6: Testing & Validation (Linux Only)
 
 ### 6.1 Unit Tests
 - [ ] Update test runner (vitest or node:test)
@@ -176,11 +151,7 @@ Create `packages/opencode/src/compat/` with Node.js implementations:
 - [ ] Test LSP integration
 
 ### 6.3 Platform Testing
-- [ ] Linux x64
-- [ ] Linux arm64
-- [ ] macOS arm64
-- [ ] macOS x64
-- [ ] Windows x64
+- [ ] Linux x64 only
 
 ---
 
@@ -259,25 +230,25 @@ scripts/
 
 ---
 
-## Risk Assessment
+## Risk Assessment (Simplified)
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
-| SEA immaturity | Medium | High | Have fallback to separate TUI download |
-| Alpine incompatibility | Low | Medium | Provide tarball alternative |
 | ESM/CJS issues | Medium | Medium | Use tsx in dev, esbuild for CJS bundle |
 | Performance regression | Low | Low | Benchmark critical paths |
 | Breaking changes | Medium | High | Comprehensive testing |
 
+> Note: SEA/Alpine/cross-platform risks removed — Linux-only scope
+
 ---
 
-## Success Criteria
+## Success Criteria (Linux Only)
 
 1. ✅ `pnpm install` succeeds
 2. ✅ `pnpm dev` launches the application
-3. ✅ `pnpm build` creates working binaries
+3. ✅ `pnpm build` creates working bundle
 4. ✅ All CLI commands work
-5. ✅ TUI launches and communicates with backend
+5. ✅ TUI downloads, launches, and communicates with backend
 6. ✅ Tests pass
-7. ✅ Works on all target platforms
-8. ✅ No Bun-specific code remains
+7. ✅ Works on Linux x64
+8. ✅ No Bun-specific code remains (original code preserved as comments)

@@ -3,6 +3,29 @@
 **Branch:** `no-bun`
 **Goal:** Remove all Bun dependencies, run on Node.js 22+
 
+## IMPORTANT Scope Constraints
+
+1. **Linux only** — This migration targets Linux exclusively. No Windows, no macOS.
+2. **Local deployment only** — Will only run on this local machine. No npm publishing, no GitHub releases, no Homebrew/AUR.
+3. **Avoid unnecessary complexity** — Skip cross-platform concerns, signing, SEA embedding, etc.
+
+## Code Convention: NO-BUN Markers
+
+When replacing Bun API code:
+```typescript
+// NO-BUN: replaced Bun.file/Bun.write with fs/promises
+// // const file = Bun.file(filepath);
+// // if (await file.exists()) { ... }
+// // await Bun.write(filepath, content);
+const content = await readFile(filepath, 'utf8');
+await writeFile(filepath, content);
+```
+
+**Always:**
+- Add `// NO-BUN: <brief explanation>` comment before replacement
+- Keep original Bun code as comments (for reference/reverting)
+- New code follows immediately after
+
 ## Session Protocol
 
 ### Start of Session
@@ -37,7 +60,7 @@ dev_docs/ISSUES.md
 | `Bun.which()` | `which` package |
 | `Bun.serve()` | `@hono/node-server` |
 | `$ from "bun"` | `execa.$` |
-| `Bun.embeddedFiles` | `node:sea` assets |
+| `Bun.embeddedFiles` | Download TUI on first run (no SEA) |
 
 ## Key Files
 

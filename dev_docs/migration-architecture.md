@@ -5,13 +5,14 @@
 
 ## Executive Summary
 
-| Aspect | Recommendation |
-|--------|----------------|
+| Aspect | Decision |
+|--------|----------|
 | **Dev runtime** | `tsx` for daily work, `tsc --noEmit` in CI |
-| **Single executable** | Node SEA with embedded assets |
-| **Alternative** | Ship TUI separately, download on first run |
+| **TUI delivery** | **Download on first run** (not embedded) |
 | **Bundler** | `esbuild` for CLI → CJS bundle |
 | **Package manager** | `pnpm` workspaces |
+| **Target platform** | **Linux x64 only** |
+| **Publishing** | **None** — local deployment only |
 
 ---
 
@@ -61,98 +62,11 @@ node --experimental-transform-types file.ts
 
 ---
 
-## 2. Single Executable Creation for Production
+## 2. TUI Delivery: Download on First Run
 
-### Options Comparison
+> **Decision: Download approach chosen** — simpler than SEA, no embedding complexity
 
-| Option | Status | Binary Embedding | Notes |
-|--------|--------|------------------|-------|
-| **Node SEA** | Active development | ✅ Yes (assets API) | First-party, recommended |
-| nexe | Maintained | ✅ Yes (-r flag) | Userland alternative |
-| pkg (vercel) | ⚠️ Archived | Yes | Use forks if needed |
-
-### Recommendation: Node SEA (Single Executable Applications)
-
-**What it does:**
-- Injects a "blob" (bundled script + optional assets) into a Node runtime
-- Creates one binary per target OS/arch
-- Supports embedding binary files via `assets` map (replaces `Bun.embeddedFiles`)
-
-**Limitations:**
-- CJS entry only (not ESM)
-- Per-OS/arch injection required
-- Not supported on Alpine/musl
-- Marked "Active development"
-
-### SEA Build Flow
-
-**Step 1: Bundle TypeScript to CJS**
-```bash
-esbuild packages/opencode/src/index.ts \
-  --bundle \
-  --platform=node \
-  --format=cjs \
-  --target=node22 \
-  --outfile=dist/cli.cjs
-```
-
-**Step 2: Create SEA config (per platform)**
-```json
-{
-  "main": "dist/cli.cjs",
-  "output": "dist/sea.blob",
-  "useCodeCache": false,
-  "useSnapshot": false,
-  "assets": {
-    "tui-bin": "dist/tui/linux-x64/tui"
-  }
-}
-```
-
-**Step 3: Generate blob and inject**
-```bash
-# Generate blob
-node --experimental-sea-config sea-config.json
-
-# Inject into Node binary
-npx postject opencode NODE_SEA_BLOB dist/sea.blob \
-  --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
-```
-
-**Step 4: Sign (macOS/Windows)**
-- macOS: Remove existing signature, inject, re-codesign
-- Windows: Sign with signtool
-
-### Runtime Extraction (replaces Bun.embeddedFiles)
-
-```typescript
-// tui.ts
-import { getAssetAsBlob, isSea } from 'node:sea';
-import { writeFile, chmod, mkdir } from 'node:fs/promises';
-import path from 'node:path';
-import envPaths from 'env-paths';
-
-export async function ensureTui(binaryName: string): Promise<string | null> {
-  if (!isSea()) return null; // Running plain node in dev
-
-  const blob = await getAssetAsBlob('tui-bin');
-  const cacheDir = path.join(envPaths('opencode').cache, 'tui');
-  const binPath = path.join(cacheDir, binaryName);
-
-  await mkdir(cacheDir, { recursive: true });
-  await writeFile(binPath, Buffer.from(await blob.arrayBuffer()));
-
-  if (process.platform !== 'win32') {
-    await chmod(binPath, 0o755);
-  }
-
-  return binPath;
-}
-```
-
----
-
-## 3. Alternative: Ship TUI Separately
+> ~~Node SEA option removed~~ — was considered but adds unnecessary complexity for Linux-only local deployment
 
 ### Pattern: Download on First Run
 
@@ -209,17 +123,6 @@ async function ensureTui(version: string, binName: string): Promise<string> {
   return exe;
 }
 ```
-
-### Comparison: SEA vs Separate Download
-
-| Aspect | SEA + Embedded | Separate Download |
-|--------|----------------|-------------------|
-| Distribution | Single file | Multiple files |
-| Build complexity | Higher | Lower |
-| First-run experience | Instant | Requires network |
-| Update flexibility | Full release needed | Can update TUI independently |
-| npm package size | Larger | Smaller |
-| Alpine support | ❌ No | ✅ Yes |
 
 ### Helpers
 
@@ -324,38 +227,22 @@ For AI SDK ecosystem compatibility:
 
 ---
 
-## Complete Build Workflow
-
-### Track A: Single Binary (SEA + Embedded TUI)
+## Complete Build Workflow (Linux Only)
 
 ```bash
-# 1. Build Go TUI per OS/arch
-for os in linux darwin windows; do
-  for arch in amd64 arm64; do
-    CGO_ENABLED=0 GOOS=$os GOARCH=$arch \
-      go build -ldflags="-s -w" \
-      -o dist/tui/${os}-${arch}/tui \
-      ./packages/tui/cmd/opencode
-  done
-done
+# 1. Build Go TUI for Linux x64
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+  go build -ldflags="-s -w" \
+  -o dist/tui/linux-x64/tui \
+  ./packages/tui/cmd/opencode
 
 # 2. Bundle TS to CJS
 esbuild packages/opencode/src/index.ts \
   --bundle --platform=node --format=cjs \
   --target=node22 --outfile=dist/cli.cjs
-
-# 3. Create SEA config (per platform)
-# 4. Generate blob: node --experimental-sea-config sea-config.json
-# 5. Inject: postject ...
-# 6. Sign (macOS/Windows)
 ```
 
-### Track B: Split Delivery (Download TUI on First Run)
-
-1. Publish `opencode` CLI to npm (JS only)
-2. On first run, detect OS/arch, download TUI from GitHub Releases
-3. Verify checksum, cache in `env-paths('opencode').cache`
-4. For Homebrew/AUR, point formula/PKGBUILD at platform TUI tarballs
+**Runtime:** On first run, TUI binary is downloaded from GitHub Releases (or local path) and cached in `env-paths('opencode').cache`
 
 ---
 
@@ -364,10 +251,9 @@ esbuild packages/opencode/src/index.ts \
 | Package | Purpose |
 |---------|---------|
 | `tsx` | TypeScript execution in dev |
-| `esbuild` | Bundle TS to CJS for SEA |
-| `env-paths` | OS-specific cache directories |
+| `esbuild` | Bundle TS to CJS |
+| `env-paths` | Cache directory for TUI download |
 | `concurrently` | Run TS backend + Go TUI in parallel (dev) |
-| `postject` | Inject SEA blob into Node binary |
 
 ---
 

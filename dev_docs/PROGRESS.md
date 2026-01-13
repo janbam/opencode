@@ -3,6 +3,8 @@
 > Branch: `no-bun`
 > Started: 2025-01-13
 > Last Updated: 2025-01-13
+>
+> **SCOPE: Linux only, local deployment only, no publishing**
 
 ## Current Status: 🟡 Planning Complete
 
@@ -107,34 +109,30 @@
 
 Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 
-### Phase 3: TUI Integration
+### Phase 3: TUI Integration (Download Approach)
 
-- [ ] Decide on approach (SEA vs Download)
-- [ ] Implement chosen approach
-- [ ] Test TUI extraction
+- [x] ~~Decide on approach~~ → **Download on first run** (decided)
+- [ ] Implement TUI downloader (`src/tui/downloader.ts`)
+- [ ] Test TUI download and caching
 - [ ] Test TUI execution
 - [ ] Test backend communication
 
-### Phase 4: Build System
+### Phase 4: Build System (Linux Only)
 
-- [ ] esbuild config
-- [ ] SEA config (if using)
-- [ ] Build script
-- [ ] Cross-platform matrix
+- [ ] esbuild config for bundling
+- [ ] Build script (`scripts/build.ts`)
+- [ ] ~~SEA config~~ (skipped — using download approach)
+- [ ] ~~Cross-platform matrix~~ (skipped — Linux only)
 
-### Phase 5: Publishing
+### Phase 5: Publishing — SKIPPED
 
-- [ ] Update publish.ts
-- [ ] npm packages
-- [ ] GitHub releases
-- [ ] Homebrew
-- [ ] AUR
+> **Not needed** — local deployment only, no npm/GitHub/Homebrew/AUR
 
-### Phase 6: Testing
+### Phase 6: Testing (Linux Only)
 
 - [ ] Unit tests passing
 - [ ] Integration tests
-- [ ] Platform testing
+- [ ] ~~Platform testing~~ (Linux x64 only)
 
 ### Phase 7: Cleanup
 
@@ -164,8 +162,11 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 ### Key Decisions Made
 - Using `tsx` for development
 - Using `esbuild` for production bundling
-- Using Node SEA for single-binary (with download fallback option)
+- **TUI: Download on first run** (NOT embedded via SEA)
 - Using `pnpm` as package manager
+- **Linux only** — no cross-platform concerns
+- **Local deployment only** — no publishing
+- **NO-BUN markers** — keep original Bun code as comments when replacing
 
 ### Files Created This Session
 - `dev_docs/bun-api-replacements.md` - API replacement guide
