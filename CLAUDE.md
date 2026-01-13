@@ -26,6 +26,29 @@ await writeFile(filepath, content);
 - Keep original Bun code as comments (for reference/reverting)
 - New code follows immediately after
 
+## Session Workflow
+
+### Keep Sessions Short
+
+**Default: Hand off early.** Don't stretch sessions to complete everything.
+
+- If a task spans multiple files/locations, it's fine to hand off mid-task
+- The next Claude instance will pick up exactly where you left off
+- Only extend a session if you're working on something that **must not be left open** (e.g., broken build, incomplete refactor that breaks tests)
+
+### Decision Points
+
+When you reach a point in the ROADMAP where a **decision needs to be made**:
+
+1. **Dedicate the session to research** — don't rush into implementation
+2. Think through options, trade-offs, implications
+3. **Document your decision** in both ROADMAP.md and PROGRESS.md
+4. Hand off — implementation starts next session
+
+One decision per session is fine. Decisions deserve focused attention.
+
+---
+
 ## Session Protocol
 
 ### Start of Session
