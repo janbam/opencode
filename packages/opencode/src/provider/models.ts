@@ -2,7 +2,7 @@ import { Global } from "../global"
 import { Log } from "../util/log"
 import path from "path"
 // NO-BUN: Import z from centralized module to ensure openapi extension is applied
-import { z } from "zod"
+import { z } from "../lib/z"
 // NO-BUN: removed Bun macro import - now a regular async function call at runtime
 // // import { data } from "./models-macro" with { type: "macro" }
 import { data } from "./models-macro"

@@ -4,7 +4,7 @@ import { LSPClient } from "./client"
 import path from "path"
 import { LSPServer } from "./server"
 // NO-BUN: Import z from centralized module to ensure openapi extension is applied
-import { z } from "zod"
+import { z } from "../lib/z"
 
 export namespace LSP {
   const log = Log.create({ service: "lsp" })

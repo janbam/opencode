@@ -27,6 +27,7 @@
 | 2025-01-13 | ec8d4131 | **Typecheck Investigation**: 189→126 errors. Fixed ESNext lib, fixed zod-openapi augmentation (GPT5 consult) |
 | 2025-01-13 | 3b50d1f9 | **Typecheck Complete**: 126→19 errors. Fixed: zod imports, Glob.scanSync, HTMLRewriter→htmlparser2, unknown types, void truthiness. 19 remaining are pre-existing pnpm issues (I-004) |
 | 2025-01-13 | a17af0df | **Typecheck Fully Passing**: 19→0 errors. Disabled declaration emit (not needed for local deployment). I-004 resolved. |
+| 2025-01-13 | 47879faa | **I-005 Resolved**: Investigated vitest zod-openapi regression. Created `src/lib/z.ts` centralized wrapper (GPT5 consult). Tests: 41/46 passing. |
 
 ---
 

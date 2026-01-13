@@ -1,8 +1,3 @@
-// NO-BUN: Import zod-openapi/extend first to ensure:
-// 1. Runtime extension of Zod with .openapi() method
-// 2. TypeScript module augmentation (declare module 'zod') for type checking
-import "zod-openapi/extend"
-
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { RunCommand } from "./cli/cmd/run"

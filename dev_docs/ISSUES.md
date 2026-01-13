@@ -10,7 +10,7 @@
 | I-002 | Low | Tests | 4 edit.test.ts failures (EscapeNormalizedReplacer) | Pre-existing logic bug, not migration-related |
 | I-003 | High | Runtime | Server.address() returns null on startup | Blocks TUI launch, needs investigation |
 | ~~I-004~~ | ~~Low~~ | ~~Types~~ | ~~19 pnpm type inference errors~~ | **RESOLVED**: disabled declaration emit |
-| I-005 | Medium | Tests | vitest fails: zod-openapi extension not loaded | setupFiles runs after module resolution |
+| ~~I-005~~ | ~~Medium~~ | ~~Tests~~ | ~~vitest fails: zod-openapi extension not loaded~~ | **RESOLVED**: centralized lib/z.ts wrapper |
 
 ### I-003: Server.address() Returns Null
 
@@ -45,26 +45,35 @@ Affected tests (in `packages/opencode/test/tool/edit.test.ts`):
 
 **Status**: Low priority. Does not affect core functionality.
 
-### I-005: vitest zod-openapi Extension Not Loaded
+### I-005: vitest zod-openapi Extension Not Loaded (RESOLVED)
 
 **Symptom:** Tests fail with `TypeError: z.enum(...).openapi is not a function`
 
 **Error location:** `src/util/log.ts:8` — first file to use `.openapi()` method
 
-**Root cause:** The `zod-openapi/extend` import mutates the zod prototype to add `.openapi()`. In the app, this is done in `src/index.ts` before any other imports. But vitest resolves all modules before running `setupFiles`, so by the time `test/setup.ts` runs, `log.ts` has already failed to import.
+#### Root Cause
 
-**Attempted fixes:**
-- `setupFiles: ["./test/setup.ts"]` — runs too late (after module resolution)
-- `globalSetup` — runs in separate process, doesn't affect test process
-- `deps.interopDefault: true` — no effect
+**The regression was introduced in commits `3f90c06` and `4cbf8f4` (Session ec8d4131).** The original `util/zod.ts` centralized wrapper was deleted based on incorrect reasoning that it "was for bundling only".
 
-**Potential solutions:**
-1. Move `import "zod-openapi/extend"` to a file that's imported before `log.ts` in the dependency graph
-2. Use vitest's `deps.optimizer` or `deps.inline` to force extension loading
-3. Create a separate entry point for tests that imports extend first
-4. Investigate vitest's `pool: 'forks'` which may have different module loading
+The actual issue: vitest resolves all modules BEFORE `setupFiles` runs, so `import "zod-openapi/extend"` in setup.ts runs too late.
 
-**Status:** Medium priority. Tests were working in earlier sessions (42/46 passing per PROGRESS.md), so something changed. Needs investigation of what broke.
+#### Resolution (Session 47879faa)
+
+Created `src/lib/z.ts` — a centralized wrapper that:
+1. Imports zod
+2. Applies `extendZodWithOpenApi()` with idempotent global guard
+3. Re-exports `z` and all zod types
+
+All files using `.openapi()` now import from `../lib/z` instead of `"zod"`.
+
+**Key insight from GPT5:** This isn't "for bundling only" — it's the correct pattern whenever a library mutates Zod at module load time. The centralized wrapper guarantees extension runs before any `.openapi()` call, regardless of module resolution order.
+
+**Files involved:**
+- `src/lib/z.ts` — the wrapper (idempotent, HMR-safe)
+- `src/types/zod-openapi-augment.d.ts` — type augmentation for `.openapi()`
+- 11 files updated to import from `lib/z`
+
+**Test result:** 41/46 passing (5 failures are pre-existing I-002, not zod-related)
 
 ## Resolved Issues
 
@@ -72,6 +81,7 @@ Affected tests (in `packages/opencode/test/tool/edit.test.ts`):
 |----|------|-------------|------------|
 | I-001 | Build | ESM import resolution in bundled code | **Resolved**: Switched to tsx-based production build — no bundling needed |
 | I-004 | Types | 19 pnpm type inference errors (TS2742, TS4094, TS4058) | **Resolved**: Disabled `declaration` and `declarationMap` in tsconfig (not needed for local deployment) |
+| I-005 | Tests | vitest zod-openapi extension not loaded | **Resolved**: Created `src/lib/z.ts` centralized wrapper; all `.openapi()` files import from there |
 
 ### I-001: ESM Import Resolution (RESOLVED)
 

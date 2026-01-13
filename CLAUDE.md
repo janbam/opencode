@@ -46,6 +46,25 @@ Both tsconfigs have `declaration: false` because:
 2. Avoids TS2742/TS4094 errors from pnpm's nested module paths
 3. `noEmit: true` means we're only typechecking anyway
 
+### Zod-OpenAPI Extension Pattern
+
+**IMPORTANT:** All code using `.openapi()` must import `z` from `src/lib/z.ts`, not from `"zod"` directly.
+
+```typescript
+// ✅ Correct - ensures extension is loaded
+import { z } from "../lib/z"
+
+// ❌ Wrong - extension may not be loaded
+import { z } from "zod"
+```
+
+**Why:** The `zod-openapi` library extends Zod's prototype at runtime. With `moduleResolution: "Bundler"`, vitest resolves modules before setup files run. The centralized `lib/z.ts` wrapper guarantees the extension runs before any `.openapi()` call.
+
+**The pattern:**
+- `src/lib/z.ts` — imports zod, applies extension (idempotent), re-exports
+- `src/types/zod-openapi-augment.d.ts` — TypeScript type augmentation for `.openapi()`
+- Files using `.openapi()` — import from `../lib/z`
+
 ## Code Convention: NO-BUN Markers
 
 When replacing Bun API code:

@@ -4,7 +4,7 @@ import { Filesystem } from "../util/filesystem"
 import { Global } from "../global"
 import path from "path"
 import os from "os"
-import { z } from "zod"
+import { z } from "../lib/z"
 // NO-BUN: replaced Bun.file/Bun.write with compat/file
 import { file, write } from "../compat/file"
 

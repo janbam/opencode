@@ -1,3 +1,4 @@
-// Test setup: Load zod-openapi extension before any tests run
-// This is required because tests import modules directly without going through src/index.ts
-import "zod-openapi/extend"
+// Test setup file
+// The zod-openapi extension is now handled by src/lib/z.ts
+// which is imported by any module using .openapi()
+// No special test setup needed.
