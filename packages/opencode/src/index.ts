@@ -1,6 +1,7 @@
-// NO-BUN: Import centralized zod to ensure openapi extension is applied first
-// This must be the first import to guarantee extension happens before any module uses .openapi()
-import "./util/zod"
+// NO-BUN: Import zod-openapi/extend first to ensure:
+// 1. Runtime extension of Zod with .openapi() method
+// 2. TypeScript module augmentation (declare module 'zod') for type checking
+import "zod-openapi/extend"
 
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"

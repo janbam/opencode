@@ -1,7 +1,7 @@
 import path from "path"
 import { Decimal } from "decimal.js"
 // NO-BUN: Import z from centralized module to ensure openapi extension is applied
-import { z, type ZodSchema } from "../util/zod"
+import { z, type ZodSchema } from "zod"
 import {
   generateText,
   LoadAPIKeyError,

@@ -2,7 +2,7 @@ import { mergeDeep } from "remeda"
 import { App } from "../app/app"
 import { Config } from "../config/config"
 // NO-BUN: Import z from centralized module to ensure openapi extension is applied
-import { z } from "../util/zod"
+import { z } from "zod"
 
 export namespace Mode {
   export const Info = z

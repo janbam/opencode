@@ -1,5 +1,5 @@
 // NO-BUN: Import z from centralized module to ensure openapi extension is applied
-import { z, type ZodType } from "../util/zod"
+import { z, type ZodType } from "zod"
 import { App } from "../app/app"
 import { Log } from "../util/log"
 

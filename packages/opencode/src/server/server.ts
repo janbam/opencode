@@ -6,7 +6,7 @@ import { streamSSE } from "hono/streaming"
 import { Session } from "../session"
 import { resolver, validator as zValidator } from "hono-openapi/zod"
 // NO-BUN: Import z from centralized module to ensure openapi extension is applied
-import { z } from "../util/zod"
+import { z } from "zod"
 import { Provider } from "../provider/provider"
 import { App } from "../app/app"
 import { mapValues } from "remeda"

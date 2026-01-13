@@ -1,12 +1,10 @@
-import "zod-openapi/extend"
 import { Log } from "../util/log"
 import { Context } from "../util/context"
 import { Filesystem } from "../util/filesystem"
 import { Global } from "../global"
 import path from "path"
 import os from "os"
-// NO-BUN: Import z from centralized module to ensure openapi extension is applied
-import { z } from "../util/zod"
+import { z } from "zod"
 // NO-BUN: replaced Bun.file/Bun.write with compat/file
 import { file, write } from "../compat/file"
 

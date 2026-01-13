@@ -24,6 +24,7 @@
 | 2025-01-13 | 126f8ba7 | **Phase 6 Started**: vitest migration, $.escape()/.raw() compat, 42/46 tests pass |
 | 2025-01-13 | f5bc3052 | **Phase 7 Complete**: Removed bunfig.toml, marked publish.ts as unmaintained, verified build/tests |
 | 2025-01-13 | f5bc3052 | **Phase 8 Started**: Fixed ResolveMessage error, found Server.address() issue |
+| 2025-01-13 | ec8d4131 | **Typecheck Investigation**: 189→126 errors. Fixed ESNext lib, fixed zod-openapi augmentation (GPT5 consult) |
 
 ---
 
