@@ -8,6 +8,8 @@ import { App } from "../app/app"
 import { Bus } from "../bus"
 import { File } from "../file"
 import { FileTime } from "../file/time"
+// NO-BUN: Import file and write from compat layer
+import { file, write } from "../compat"
 
 export const WriteTool = Tool.define({
   id: "write",
@@ -20,8 +22,10 @@ export const WriteTool = Tool.define({
     const app = App.info()
     const filepath = path.isAbsolute(params.filePath) ? params.filePath : path.join(app.path.cwd, params.filePath)
 
-    const file = Bun.file(filepath)
-    const exists = await file.exists()
+    // NO-BUN: replaced Bun.file with compat layer
+    // // const file = Bun.file(filepath)
+    const fileHandle = file(filepath)
+    const exists = await fileHandle.exists()
     if (exists) await FileTime.assert(ctx.sessionID, filepath)
 
     await Permission.ask({
@@ -35,7 +39,9 @@ export const WriteTool = Tool.define({
       },
     })
 
-    await Bun.write(filepath, params.content)
+    // NO-BUN: replaced Bun.write with compat layer
+    // // await Bun.write(filepath, params.content)
+    await write(filepath, params.content)
     await Bus.publish(File.Event.Edited, {
       file: filepath,
     })

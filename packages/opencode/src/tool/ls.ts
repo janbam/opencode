@@ -3,6 +3,8 @@ import { Tool } from "./tool"
 import { App } from "../app/app"
 import * as path from "path"
 import DESCRIPTION from "./ls.txt"
+// NO-BUN: Import Glob from compat layer
+import { Glob, minimatch } from "../compat"
 
 export const IGNORE_PATTERNS = [
   "node_modules/",
@@ -44,12 +46,17 @@ export const ListTool = Tool.define({
     const app = App.info()
     const searchPath = path.resolve(app.path.cwd, params.path || ".")
 
-    const glob = new Bun.Glob("**/*")
+    // NO-BUN: replaced Bun.Glob with compat layer Glob
+    // // const glob = new Bun.Glob("**/*")
+    // Note: dot:true passed in constructor since compat scan() doesn't accept it
+    const glob = new Glob("**/*", { dot: true })
     const files = []
 
-    for await (const file of glob.scan({ cwd: searchPath, dot: true })) {
+    for await (const file of glob.scan({ cwd: searchPath })) {
       if (IGNORE_PATTERNS.some((p) => file.includes(p))) continue
-      if (params.ignore?.some((pattern) => new Bun.Glob(pattern).match(file))) continue
+      // NO-BUN: replaced Bun.Glob().match() with minimatch
+      // // if (params.ignore?.some((pattern) => new Bun.Glob(pattern).match(file))) continue
+      if (params.ignore?.some((pattern) => minimatch(file, pattern))) continue
       files.push(file)
       if (files.length >= LIMIT) break
     }

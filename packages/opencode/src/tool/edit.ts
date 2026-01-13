@@ -4,6 +4,8 @@
 
 import { z } from "zod"
 import * as path from "path"
+// NO-BUN: Import stat from fs/promises for directory check
+import { stat } from "node:fs/promises"
 import { Tool } from "./tool"
 import { LSP } from "../lsp"
 import { createTwoFilesPatch } from "diff"
@@ -13,6 +15,8 @@ import { App } from "../app/app"
 import { File } from "../file"
 import { Bus } from "../bus"
 import { FileTime } from "../file/time"
+// NO-BUN: Import file and write from compat layer
+import { file, write } from "../compat"
 
 export const EditTool = Tool.define({
   id: "edit",
@@ -51,26 +55,33 @@ export const EditTool = Tool.define({
     await (async () => {
       if (params.oldString === "") {
         contentNew = params.newString
-        await Bun.write(filepath, params.newString)
+        // NO-BUN: replaced Bun.write with compat layer
+        // // await Bun.write(filepath, params.newString)
+        await write(filepath, params.newString)
         await Bus.publish(File.Event.Edited, {
           file: filepath,
         })
         return
       }
 
-      const file = Bun.file(filepath)
-      const stats = await file.stat().catch(() => {})
+      // NO-BUN: replaced Bun.file with compat layer and stat() with fs/promises
+      // // const file = Bun.file(filepath)
+      // // const stats = await file.stat().catch(() => {})
+      // // if (!stats) throw new Error(`File ${filepath} not found`)
+      // // if (stats.isDirectory()) throw new Error(`Path is a directory, not a file: ${filepath}`)
+      const fileHandle = file(filepath)
+      const stats = await stat(filepath).catch(() => undefined)
       if (!stats) throw new Error(`File ${filepath} not found`)
       if (stats.isDirectory()) throw new Error(`Path is a directory, not a file: ${filepath}`)
       await FileTime.assert(ctx.sessionID, filepath)
-      contentOld = await file.text()
+      contentOld = await fileHandle.text()
 
       contentNew = replace(contentOld, params.oldString, params.newString, params.replaceAll)
-      await file.write(contentNew)
+      await fileHandle.write(contentNew)
       await Bus.publish(File.Event.Edited, {
         file: filepath,
       })
-      contentNew = await file.text()
+      contentNew = await fileHandle.text()
     })()
 
     const diff = trimDiff(createTwoFilesPatch(filepath, filepath, contentOld, contentNew))

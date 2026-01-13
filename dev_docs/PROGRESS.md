@@ -14,6 +14,7 @@
 |------|------------|-----------|
 | 2025-01-13 | a148fa34 | Initial investigation, GPT-5 consultation, created dev_docs |
 | 2025-01-13 | 7d0f9a46 | **Phase 1 Complete** + **Compat Layer Complete**: pnpm, deps, tsconfig, src/compat/* |
+| 2025-01-13 | 8bae2780 | **All tool files migrated**: bash, edit, write, read, grep, glob, ls |
 
 ---
 
@@ -22,7 +23,7 @@
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Phase 1: Foundation Setup | 🟢 Complete | 100% |
-| Phase 2: API Replacements | 🟡 In Progress | 30% |
+| Phase 2: API Replacements | 🟡 In Progress | 50% |
 | Phase 3: TUI Integration | 🔴 Not Started | 0% |
 | Phase 4: Build System | 🔴 Not Started | 0% |
 | Phase 5: Publishing | 🔴 Not Started | 0% |
@@ -74,13 +75,13 @@
 
 | File | Status | Notes |
 |------|--------|-------|
-| src/tool/bash.ts | 🔴 | spawn |
-| src/tool/edit.ts | 🔴 | file, write |
-| src/tool/write.ts | 🔴 | file, write |
-| src/tool/read.ts | 🔴 | file |
-| src/tool/grep.ts | 🔴 | spawn, file |
-| src/tool/glob.ts | 🔴 | file |
-| src/tool/ls.ts | 🔴 | Glob |
+| src/tool/bash.ts | 🟢 | spawn → compat |
+| src/tool/edit.ts | 🟢 | file, write → compat + fs/promises stat |
+| src/tool/write.ts | 🟢 | file, write → compat |
+| src/tool/read.ts | 🟢 | file → compat |
+| src/tool/grep.ts | 🟢 | spawn → compat, stat → fs/promises |
+| src/tool/glob.ts | 🟢 | stat → fs/promises |
+| src/tool/ls.ts | 🟢 | Glob, minimatch → compat |
 | src/server/server.ts | 🔴 | serve |
 | src/session/index.ts | 🔴 | file |
 | src/session/system.ts | 🔴 | file |
@@ -157,29 +158,29 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 ## Notes for Next Session
 
 ### Where to Start
-1. **Compat layer is ready** — all helpers in `src/compat/`
-2. Now migrate source files one by one
-3. Start with simpler files (tool/*.ts) before complex ones
-4. Use `NO-BUN` markers as documented in CLAUDE.md
+1. **All tool files done** — `src/tool/*.ts` migrated
+2. Continue with other source files
+3. Use `NO-BUN` markers as documented in CLAUDE.md
 
 ### Recommended Migration Order
-Start with simpler tool files, build confidence, then tackle complex ones:
+Tool files are done. Continue with:
 
-1. **Easy** (single API replacement):
-   - `src/tool/read.ts` - Bun.file only
-   - `src/tool/write.ts` - Bun.file, Bun.write
-   - `src/tool/edit.ts` - Bun.file, Bun.write
-
-2. **Medium** (multiple APIs):
-   - `src/tool/bash.ts` - Bun.spawn
-   - `src/tool/grep.ts` - Bun.spawn, Bun.file
+1. **Medium** (multiple APIs):
    - `src/file/ripgrep.ts` - $, spawn
+   - `src/file/fzf.ts` - which, file
+   - `src/file/index.ts` - $, file
+   - `src/file/time.ts` - file
    - `src/format/*.ts` - Bun.which, spawn
+   - `src/session/*.ts` - file
+   - `src/auth/*.ts` - file
+   - `src/config/*.ts` - file
+   - `src/util/*.ts` - file
 
-3. **Complex** (critical/many APIs):
+2. **Complex** (critical/many APIs):
    - `src/server/server.ts` - Bun.serve → @hono/node-server
    - `src/cli/cmd/tui.ts` - embeddedFiles, spawn (needs TUI download logic)
    - `src/bun/index.ts` - may be removed entirely
+   - `src/lsp/*.ts` - $, which, spawn, file
 
 ### Key Decisions Made
 - Using `tsx` for development
@@ -191,25 +192,16 @@ Start with simpler tool files, build confidence, then tackle complex ones:
 - **NO-BUN markers** — keep original Bun code as comments when replacing
 - **Bundler moduleResolution** — allows extension-less imports (works with tsx/esbuild)
 
-### Files Modified This Session (7d0f9a46)
-- `pnpm-workspace.yaml` - Created
-- `package.json` - Updated for pnpm
-- `packages/opencode/package.json` - Added deps, removed Bun types
-- `packages/function/package.json` - Replaced catalog refs
-- `packages/web/package.json` - Replaced catalog refs
-- `tsconfig.json` - Updated for Node.js
-- `packages/opencode/tsconfig.json` - Bundler mode
-
 ### Reference Commands
 ```bash
 # Check current branch
 git branch --show-current  # should be: no-bun
 
-# View Bun API usages
-grep -rn "Bun\." --include="*.ts" packages/opencode/src/ | wc -l  # 114 usages
+# View remaining Bun API usages (excluding comments and compat layer docs)
+grep -rn "Bun\." --include="*.ts" packages/opencode/src/ | grep -v "// //" | grep -v "NO-BUN" | wc -l
 
-# Files using Bun
-grep -rn "Bun\." --include="*.ts" packages/opencode/src/ | cut -d: -f1 | sort -u | wc -l  # 33 files
+# Files still using Bun
+grep -rn "Bun\." --include="*.ts" packages/opencode/src/ | grep -v "// //" | grep -v "NO-BUN" | cut -d: -f1 | sort -u
 ```
 
 ---

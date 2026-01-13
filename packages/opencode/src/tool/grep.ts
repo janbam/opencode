@@ -1,7 +1,11 @@
 import { z } from "zod"
+// NO-BUN: Import stat from fs/promises for file mtime lookup
+import { stat } from "node:fs/promises"
 import { Tool } from "./tool"
 import { App } from "../app/app"
 import { Ripgrep } from "../file/ripgrep"
+// NO-BUN: Import spawn from compat layer
+import { spawn } from "../compat"
 
 import DESCRIPTION from "./grep.txt"
 
@@ -28,14 +32,24 @@ export const GrepTool = Tool.define({
     }
     args.push(searchPath)
 
-    const proc = Bun.spawn([rgPath, ...args], {
+    // NO-BUN: replaced Bun.spawn with compat layer spawn
+    // // const proc = Bun.spawn([rgPath, ...args], {
+    // //   stdout: "pipe",
+    // //   stderr: "pipe",
+    // // })
+    const proc = spawn({
+      cmd: [rgPath, ...args],
       stdout: "pipe",
       stderr: "pipe",
     })
 
-    const output = await new Response(proc.stdout).text()
-    const errorOutput = await new Response(proc.stderr).text()
-    const exitCode = await proc.exited
+    // NO-BUN: use proc.text() and proc.stderrText() instead of Response
+    // // const output = await new Response(proc.stdout).text()
+    // // const errorOutput = await new Response(proc.stderr).text()
+    await proc.exited
+    const output = await proc.text()
+    const errorOutput = await proc.stderrText()
+    const exitCode = proc.exitCode
 
     if (exitCode === 1) {
       return {
@@ -62,8 +76,10 @@ export const GrepTool = Tool.define({
       const lineNum = parseInt(parts[1], 10)
       const lineText = parts[2]
 
-      const file = Bun.file(filePath)
-      const stats = await file.stat().catch(() => null)
+      // NO-BUN: replaced Bun.file().stat() with fs/promises stat
+      // // const file = Bun.file(filePath)
+      // // const stats = await file.stat().catch(() => null)
+      const stats = await stat(filePath).catch(() => null)
       if (!stats) continue
 
       matches.push({

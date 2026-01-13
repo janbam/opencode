@@ -21,9 +21,11 @@ export { minimatch }
 export class Glob {
   private readonly nodeGlob: NodeGlob<GlobOptions>
   private readonly pattern: string
+  private readonly options: { cwd?: string; absolute?: boolean; dot?: boolean }
 
   constructor(pattern: string, options?: { cwd?: string; absolute?: boolean; dot?: boolean }) {
     this.pattern = pattern
+    this.options = options ?? {}
     this.nodeGlob = new NodeGlob(pattern, {
       cwd: options?.cwd,
       absolute: options?.absolute,
@@ -43,9 +45,13 @@ export class Glob {
 
   /**
    * Scan files matching the pattern (replaces Bun.Glob.scan())
+   * Preserves constructor options (like dot: true) when a new cwd is provided
    */
   async *scan(options?: { cwd?: string }): AsyncIterableIterator<string> {
-    const glob = options?.cwd ? new NodeGlob(this.pattern, { cwd: options.cwd }) : this.nodeGlob
+    // Preserve original options (like dot: true) when creating new glob with different cwd
+    const glob = options?.cwd
+      ? new NodeGlob(this.pattern, { ...this.options, cwd: options.cwd, withFileTypes: false })
+      : this.nodeGlob
 
     for await (const file of glob) {
       yield file as string

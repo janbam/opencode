@@ -1,5 +1,7 @@
 import { z } from "zod"
 import path from "path"
+// NO-BUN: Import stat from fs/promises for mtime lookup
+import { stat } from "node:fs/promises"
 import { Tool } from "./tool"
 import { App } from "../app/app"
 import DESCRIPTION from "./glob.txt"
@@ -34,8 +36,12 @@ export const GlobTool = Tool.define({
         break
       }
       const full = path.resolve(search, file)
-      const stats = await Bun.file(full)
-        .stat()
+      // NO-BUN: replaced Bun.file().stat() with fs/promises stat
+      // // const stats = await Bun.file(full)
+      // //   .stat()
+      // //   .then((x) => x.mtime.getTime())
+      // //   .catch(() => 0)
+      const stats = await stat(full)
         .then((x) => x.mtime.getTime())
         .catch(() => 0)
       files.push({

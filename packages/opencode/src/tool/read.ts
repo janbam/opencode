@@ -2,6 +2,8 @@ import { z } from "zod"
 import * as fs from "fs"
 import * as path from "path"
 import { Tool } from "./tool"
+// NO-BUN: Import file handle from compat layer
+import { file } from "../compat"
 import { LSP } from "../lsp"
 import { FileTime } from "../file/time"
 import DESCRIPTION from "./read.txt"
@@ -24,8 +26,10 @@ export const ReadTool = Tool.define({
       filePath = path.join(process.cwd(), filePath)
     }
 
-    const file = Bun.file(filePath)
-    if (!(await file.exists())) {
+    // NO-BUN: replaced Bun.file with compat layer
+    // // const file = Bun.file(filePath)
+    const fileHandle = file(filePath)
+    if (!(await fileHandle.exists())) {
       const dir = path.dirname(filePath)
       const base = path.basename(filePath)
 
@@ -49,7 +53,8 @@ export const ReadTool = Tool.define({
     const offset = params.offset || 0
     const isImage = isImageFile(filePath)
     if (isImage) throw new Error(`This is an image file of type: ${isImage}\nUse a different tool to process images`)
-    const lines = await file.text().then((text) => text.split("\n"))
+    // NO-BUN: using fileHandle.text() from compat layer
+    const lines = await fileHandle.text().then((text) => text.split("\n"))
     const raw = lines.slice(offset, offset + limit).map((line) => {
       return line.length > MAX_LINE_LENGTH ? line.substring(0, MAX_LINE_LENGTH) + "..." : line
     })
