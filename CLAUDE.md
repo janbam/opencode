@@ -9,6 +9,43 @@
 2. **Local deployment only** — Will only run on this local machine. No npm publishing, no GitHub releases, no Homebrew/AUR.
 3. **Avoid unnecessary complexity** — Skip cross-platform concerns, signing, SEA embedding, etc.
 
+## TypeScript Configuration
+
+### Two tsconfig Files
+
+| File | Purpose |
+|------|---------|
+| `/tsconfig.json` | Root-level scripts, IDE defaults for non-package files |
+| `/packages/opencode/tsconfig.json` | The main CLI package (what we're migrating) |
+
+Other packages (`web`, `function`) have their own tsconfigs with different extends chains.
+
+### Why `moduleResolution: "Bundler"` Without Bundling?
+
+The packages/opencode tsconfig uses `moduleResolution: "Bundler"` even though we run source directly via `tsx` (no bundling). This is intentional:
+
+**The problem:** Node.js with `moduleResolution: "NodeNext"` requires explicit file extensions in imports:
+```typescript
+import { foo } from "./utils.js"  // NodeNext requires .js
+import { foo } from "./utils"     // ❌ Error with NodeNext
+```
+
+**The solution:** `moduleResolution: "Bundler"` allows extension-less imports:
+```typescript
+import { foo } from "./utils"     // ✅ Works with Bundler
+```
+
+**Why this works:** `tsx` (which we use for both dev and prod) handles module resolution itself, similar to how bundlers do. It doesn't care about extensions. The "Bundler" setting tells TypeScript to accept this pattern.
+
+**Trade-off accepted:** We're using a moduleResolution mode named after bundlers even though we don't bundle. The name is misleading but the behavior is exactly what we need for tsx.
+
+### Declaration Emit Disabled
+
+Both tsconfigs have `declaration: false` because:
+1. Local deployment only — no npm publishing, no consumers need `.d.ts` files
+2. Avoids TS2742/TS4094 errors from pnpm's nested module paths
+3. `noEmit: true` means we're only typechecking anyway
+
 ## Code Convention: NO-BUN Markers
 
 When replacing Bun API code:
