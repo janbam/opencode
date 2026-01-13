@@ -6,7 +6,7 @@
 >
 > **SCOPE: Linux only, local deployment only, no publishing**
 
-## Current Status: 🟢 Phase 1 Complete
+## Current Status: 🟢 Phase 2 Complete
 
 ### Session Log
 
@@ -17,6 +17,7 @@
 | 2025-01-13 | 8bae2780 | **All tool files migrated** + **All file/* migrated**: 11 files total |
 | 2025-01-13 | aff02b35 | **All easy file migrations**: session, auth, config, util, storage, global, app, provider: 12 files |
 | 2025-01-13 | c3737d80 | **Medium files migrated**: format/*, lsp/*, installation, snapshot: 6 files |
+| 2025-01-13 | 83c9457d | **Phase 2 Complete**: All 33 files migrated - server.ts, tui.ts, run.ts, generate.ts, ui.ts, bun/index.ts |
 
 ---
 
@@ -25,10 +26,10 @@
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Phase 1: Foundation Setup | 🟢 Complete | 100% |
-| Phase 2: API Replacements | 🟡 In Progress | 91% |
+| Phase 2: API Replacements | 🟢 Complete | 100% |
 | Phase 3: TUI Integration | 🔴 Not Started | 0% |
 | Phase 4: Build System | 🔴 Not Started | 0% |
-| Phase 5: Publishing | 🔴 Not Started | 0% |
+| Phase 5: Publishing | ⏭️ Skipped | N/A |
 | Phase 6: Testing | 🔴 Not Started | 0% |
 | Phase 7: Cleanup | 🔴 Not Started | 0% |
 
@@ -100,12 +101,12 @@
 | src/global/index.ts | 🟢 | file, write → compat |
 | src/app/app.ts | 🟢 | file, write → compat |
 | src/provider/models.ts | 🟢 | file, write → compat |
-| src/server/server.ts | 🔴 | serve |
-| src/bun/index.ts | 🔴 | spawn, file, write |
-| src/cli/cmd/tui.ts | 🔴 | **CRITICAL** - embeddedFiles |
-| src/cli/cmd/run.ts | 🔴 | spawn |
-| src/cli/cmd/generate.ts | 🔴 | TBD |
-| src/cli/ui.ts | 🔴 | TBD |
+| src/server/server.ts | 🟢 | Bun.serve → @hono/node-server |
+| src/bun/index.ts | 🟢 | spawn, file → compat, npm instead of bun CLI |
+| src/cli/cmd/tui.ts | 🟢 | spawn, fileURLToPath → compat; embeddedFiles block → Phase 3 TODO |
+| src/cli/cmd/run.ts | 🟢 | Bun.stdin → node:stream/consumers |
+| src/cli/cmd/generate.ts | 🟢 | Bun.write → fs/promises |
+| src/cli/ui.ts | 🟢 | Bun.stderr.write → process.stderr.write, Bun.color → Style.TEXT_DIM |
 | src/lsp/server.ts | 🟢 | $, which, spawn, file, resolve → compat |
 | src/lsp/client.ts | 🟢 | file → compat |
 | src/format/formatter.ts | 🟢 | which, file → compat |
@@ -157,20 +158,19 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 
 ---
 
-## Notes for Next Session
 
-### Where to Start
-29 of 33 files migrated (88%). 4 files remaining.
+### What's Done
 
-### Remaining Files (4)
-
-1. **Complex** (critical/many APIs):
-   - `src/server/server.ts` - Bun.serve → @hono/node-server
-   - `src/cli/cmd/tui.ts` - **CRITICAL** - embeddedFiles, spawn (needs TUI download logic)
-   - `src/cli/cmd/run.ts` - Bun.stdin
-   - `src/cli/cmd/generate.ts` - Bun.write
-   - `src/cli/ui.ts` - Bun.stderr.write, Bun.color
-   - `src/bun/index.ts` - may be removed entirely (check dependencies first)
+All Bun API usages have been replaced:
+- `Bun.file()`, `Bun.write()` → compat/file.ts + fs/promises
+- `Bun.spawn()` → compat/spawn.ts (execa)
+- `Bun.Glob` → compat/glob.ts
+- `Bun.which()` → compat/which.ts
+- `Bun.serve()` → @hono/node-server
+- `$ from "bun"` → compat/shell.ts (execa.$)
+- `Bun.stdin.text()` → node:stream/consumers
+- `Bun.stderr.write` → process.stderr.write
+- `Bun.color()` → ANSI escape codes
 
 ### Key Decisions Made
 - Using `tsx` for development
@@ -181,29 +181,6 @@ Legend: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 - **Local deployment only** — no publishing
 - **NO-BUN markers** — keep original Bun code as comments when replacing
 - **Bundler moduleResolution** — allows extension-less imports (works with tsx/esbuild)
-
-### Reference Commands
-```bash
-# Check current branch
-git branch --show-current  # should be: no-bun
-
-# View remaining Bun API usages (excluding comments and compat layer docs)
-grep -rn "Bun\." --include="*.ts" packages/opencode/src/ | grep -v "// //" | grep -v "NO-BUN" | wc -l
-
-# Files still using Bun
-grep -rn "Bun\." --include="*.ts" packages/opencode/src/ | grep -v "// //" | grep -v "NO-BUN" | cut -d: -f1 | sort -u
-```
-
----
-
-## Metrics
-
-| Metric | Value |
-|--------|-------|
-| Total Bun API usages | 114 |
-| Files to modify | 33 |
-| New dependencies | 8 |
-| Estimated effort | 25-40 hours |
 
 ---
 

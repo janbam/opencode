@@ -12,6 +12,9 @@ import { Bus } from "../../bus"
 import { Log } from "../../util/log"
 import { FileWatcher } from "../../file/watch"
 import { Mode } from "../../session/mode"
+// NO-BUN: added compat imports for spawn and url
+import { spawn } from "../../compat/spawn"
+import { fileURLToPath } from "../../compat/url"
 
 export const TuiCommand = cmd({
   command: "$0 [project]",
@@ -57,34 +60,43 @@ export const TuiCommand = cmd({
           hostname: "127.0.0.1",
         })
 
-        let cmd = ["go", "run", "./main.go"]
-        let cwd = Bun.fileURLToPath(new URL("../../../../tui/cmd/opencode", import.meta.url))
-        if (Bun.embeddedFiles.length > 0) {
-          const blob = Bun.embeddedFiles[0] as File
-          let binaryName = blob.name
-          if (process.platform === "win32" && !binaryName.endsWith(".exe")) {
-            binaryName += ".exe"
-          }
-          const binary = path.join(Global.Path.cache, "tui", binaryName)
-          const file = Bun.file(binary)
-          if (!(await file.exists())) {
-            await Bun.write(file, blob, { mode: 0o755 })
-            await fs.chmod(binary, 0o755)
-          }
-          cwd = process.cwd()
-          cmd = [binary]
-        }
+        // NO-BUN: replaced Bun.fileURLToPath with compat, Bun.spawn with compat
+        // // let cwd = Bun.fileURLToPath(new URL("../../../../tui/cmd/opencode", import.meta.url))
+        let tuiCmd = ["go", "run", "./main.go"]
+        let tuiCwd = fileURLToPath(new URL("../../../../tui/cmd/opencode", import.meta.url))
+
+        // TODO: Phase 3 - TUI Download Approach
+        // In Bun SEA builds, the TUI binary was embedded. For Node.js, we'll download it on first run.
+        // For now, dev mode uses `go run` which works without the embedded binary.
+        // The download logic will go here in Phase 3 (see dev_docs/ROADMAP.md Phase 3)
+        // // if (Bun.embeddedFiles.length > 0) {
+        // //   const blob = Bun.embeddedFiles[0] as File
+        // //   let binaryName = blob.name
+        // //   if (process.platform === "win32" && !binaryName.endsWith(".exe")) {
+        // //     binaryName += ".exe"
+        // //   }
+        // //   const binary = path.join(Global.Path.cache, "tui", binaryName)
+        // //   const file = Bun.file(binary)
+        // //   if (!(await file.exists())) {
+        // //     await Bun.write(file, blob, { mode: 0o755 })
+        // //     await fs.chmod(binary, 0o755)
+        // //   }
+        // //   tuiCwd = process.cwd()
+        // //   tuiCmd = [binary]
+        // // }
+
         Log.Default.info("tui", {
-          cmd,
+          cmd: tuiCmd,
         })
-        const proc = Bun.spawn({
+        // // const proc = Bun.spawn({ cmd: [...], ... })
+        const proc = spawn({
           cmd: [
-            ...cmd,
+            ...tuiCmd,
             ...(args.model ? ["--model", args.model] : []),
             ...(args.prompt ? ["--prompt", args.prompt] : []),
             ...(args.mode ? ["--mode", args.mode] : []),
           ],
-          cwd,
+          cwd: tuiCwd,
           stdout: "inherit",
           stderr: "inherit",
           stdin: "inherit",
@@ -126,14 +138,16 @@ export const TuiCommand = cmd({
       if (result === "needs_provider") {
         UI.empty()
         UI.println(UI.logo("   "))
-        const result = await Bun.spawn({
+        // NO-BUN: replaced Bun.spawn with compat spawn
+        // // const result = await Bun.spawn({ cmd: [...], ... }).exited
+        const authResult = await spawn({
           cmd: [...getOpencodeCommand(), "auth", "login"],
           cwd: process.cwd(),
           stdout: "inherit",
           stderr: "inherit",
           stdin: "inherit",
         }).exited
-        if (result !== 0) return
+        if (authResult !== 0) return
         UI.empty()
       }
     }

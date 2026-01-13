@@ -78,6 +78,8 @@ IMPORTANT: Don't add additional backlogs, what has been done or what should be d
 Only check off what has been done. The next instance will assess themselves what should be done next!
 Only use ultrayolo passover message when you have to end your session mid-task and the next instance needs critical information about open issues.
 
+**NO** "Notes for next session" or "Next Up" in PROGRESS.md or anywhere else!
+
 ## Quick Reference
 
 | Bun API | Node.js Replacement |

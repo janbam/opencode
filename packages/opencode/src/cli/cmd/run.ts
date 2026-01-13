@@ -1,4 +1,6 @@
 import type { Argv } from "yargs"
+// NO-BUN: added node:stream/consumers for stdin reading
+import { text as stdinText } from "node:stream/consumers"
 import { Bus } from "../../bus"
 import { Provider } from "../../provider/provider"
 import { Session } from "../../session"
@@ -62,7 +64,9 @@ export const RunCommand = cmd({
   handler: async (args) => {
     let message = args.message.join(" ")
 
-    if (!process.stdin.isTTY) message += "\n" + (await Bun.stdin.text())
+    // NO-BUN: replaced Bun.stdin.text() with node:stream/consumers
+    // // if (!process.stdin.isTTY) message += "\n" + (await Bun.stdin.text())
+    if (!process.stdin.isTTY) message += "\n" + (await stdinText(process.stdin))
 
     await bootstrap({ cwd: process.cwd() }, async () => {
       const session = await (async () => {

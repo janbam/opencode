@@ -17,6 +17,9 @@ import { File } from "../file"
 import { LSP } from "../lsp"
 import { MessageV2 } from "../session/message-v2"
 import { Mode } from "../session/mode"
+// NO-BUN: added @hono/node-server for Bun.serve replacement
+import { serve } from "@hono/node-server"
+import type { AddressInfo } from "net"
 
 const ERRORS = {
   400: {
@@ -731,13 +734,30 @@ export namespace Server {
     return result
   }
 
+  // NO-BUN: replaced Bun.serve with @hono/node-server
+  // Returns a compatible interface with hostname, port, url, and stop()
   export function listen(opts: { port: number; hostname: string }) {
-    const server = Bun.serve({
+    // // const server = Bun.serve({
+    // //   port: opts.port,
+    // //   hostname: opts.hostname,
+    // //   idleTimeout: 0,
+    // //   fetch: app().fetch,
+    // // })
+    const nodeServer = serve({
+      fetch: app().fetch,
       port: opts.port,
       hostname: opts.hostname,
-      idleTimeout: 0,
-      fetch: app().fetch,
     })
-    return server
+
+    // Get actual address (port may be 0 for dynamic assignment)
+    const address = nodeServer.address() as AddressInfo
+
+    // Create Bun-compatible wrapper
+    return {
+      hostname: address.address,
+      port: address.port,
+      url: new URL(`http://${address.address}:${address.port}`),
+      stop: () => nodeServer.close(),
+    }
   }
 }

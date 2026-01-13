@@ -28,14 +28,17 @@ export namespace UI {
     TEXT_INFO_BOLD: "\x1b[94m\x1b[1m",
   }
 
+  // NO-BUN: replaced Bun.stderr.write with process.stderr.write
   export function println(...message: string[]) {
     print(...message)
-    Bun.stderr.write(EOL)
+    // // Bun.stderr.write(EOL)
+    process.stderr.write(EOL)
   }
 
   export function print(...message: string[]) {
     blank = false
-    Bun.stderr.write(message.join(" "))
+    // // Bun.stderr.write(message.join(" "))
+    process.stderr.write(message.join(" "))
   }
 
   let blank = false
@@ -45,11 +48,13 @@ export namespace UI {
     blank = true
   }
 
+  // NO-BUN: replaced Bun.color("gray", "ansi") with Style.TEXT_DIM (same ANSI code)
   export function logo(pad?: string) {
     const result = []
     for (const row of LOGO) {
       if (pad) result.push(pad)
-      result.push(Bun.color("gray", "ansi"))
+      // // result.push(Bun.color("gray", "ansi"))
+      result.push(Style.TEXT_DIM)
       result.push(row[0])
       result.push("\x1b[0m")
       result.push(row[1])
