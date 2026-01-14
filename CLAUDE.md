@@ -154,10 +154,31 @@ Work in **ultrayolo** mode:
 - Test your changes
 - Commit working increments
 - Keep sessions short (<120k context)
-- Consult GPT5 when stuck
+
+---
+
+## MANDATORY: Consult GPT5 at Phase Start
+
+**At the beginning of EACH session/phase, you MUST consult GPT5.**
+
+Before writing any code, share:
+1. What phase you're starting (from session plan)
+2. What you're about to implement
+3. Any uncertainties or decisions to make
+
+GPT5 often knows simpler approaches, gotchas, or better patterns. Consulting BEFORE implementation saves context and prevents rework.
 
 ```
 mcp__GPT5__chat with:
 - reasoning_effort: "high"
+- web_search: true (for current library docs)
 - Self-contained context (GPT5 has no project knowledge)
 ```
+
+**Also consult when:**
+- Debugging something for >10 minutes
+- Making architectural decisions
+- Unsure about Node.js/TypeScript patterns
+- Stuck on anything
+
+See `dev_docs/polyfill-strategy.md` for the full strategy that GPT5 recommended.
