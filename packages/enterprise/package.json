@@ -35,7 +35,8 @@
     "@types/luxon": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
-    "vite": "catalog:"
+    "vite": "catalog:",
+    "vitest": "^2.0.0"
   },
   "engines": {
     "node": ">=22"

@@ -24,7 +24,8 @@
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plugin-icons-spritesheet": "3.0.1",
-    "vite-plugin-solid": "catalog:"
+    "vite-plugin-solid": "catalog:",
+    "vitest": "^2.0.0"
   },
   "dependencies": {
     "@kobalte/core": "catalog:",

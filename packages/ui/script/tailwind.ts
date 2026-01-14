@@ -1,6 +1,13 @@
-#!/usr/bin/env bun
+#!/usr/bin/env tsx
+// NO-BUN: Converted from Bun.file() to Node.js fs/promises
 
-const colors = await Bun.file(import.meta.dir + "/colors.txt").text()
+import { readFile, writeFile } from "node:fs/promises"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+const colors = await readFile(join(__dirname, "colors.txt"), "utf-8")
 
 const variables = []
 for (const line of colors.split("\n")) {
@@ -20,4 +27,4 @@ const output = `
 }
 `
 
-await Bun.file(import.meta.dir + "/../src/styles/tailwind/colors.css").write(output.trim())
+await writeFile(join(__dirname, "../src/styles/tailwind/colors.css"), output.trim())

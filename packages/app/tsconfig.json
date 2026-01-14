@@ -18,7 +18,8 @@
     "outDir": "node_modules/.ts-dist",
     "isolatedModules": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "bun:test": ["./src/compat/bun-test.ts"]
     }
   },
   "include": ["src", "package.json"],

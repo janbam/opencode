@@ -254,7 +254,6 @@ const createPlatform = (password: Accessor<string | null>): Platform => ({
       .catch(() => undefined)
   },
 
-  // @ts-expect-error
   fetch: (input, init) => {
     const pw = password()
 
