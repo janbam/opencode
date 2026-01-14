@@ -151,15 +151,10 @@ pnpm dev -- --help
 
 ---
 
-## Session Plan
+## Manual migration
 
-| Session | Focus |
-|---------|-------|
-| 1 | TypeScript setup, dependencies, compat/ skeleton |
-| 2 | Core polyfill: file, spawn, shell, glob, which |
-| 3 | Server + remaining: serve, sleep, string, hash, net |
-| 4 | bun-pty → node-pty, test pass |
-| 5 | Polish, cleanup, verify full app works |
+IMPORTANT: When modifying code for non-bun migration that does not use the polyfill approach ALWAYS add a NO-BUN comment marker and keep the previous code commented out for reference!
+
 
 ---
 

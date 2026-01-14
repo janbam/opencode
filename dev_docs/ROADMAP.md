@@ -2,7 +2,7 @@
 
 > Branch: `no-bun-v2`
 > Target: Node.js 22+ LTS
-> Status: 🟡 Phase 1 — Setup (in progress)
+> Status: 🟡 Phase 3 — Core compat layer fixes needed
 >
 > **SCOPE: Linux only, local deployment only, no publishing**
 
@@ -14,22 +14,20 @@ Migrate opencode from Bun runtime to Node.js using a **polyfill approach**. Inst
 
 ---
 
-## Phase 1: Setup & Dependencies
+## Phase 1: Setup & Dependencies ✅
 
 ### 1.1 Package Configuration
 - [x] Update `packages/opencode/package.json`:
   - Remove: `@types/bun`, `@tsconfig/bun`, `bun-pty`
   - Add: `execa`, `glob`, `minimatch`, `which`, `@hono/node-server`, `node-pty`, `string-width`
   - Change scripts: `bun` → `tsx`
-- [ ] Update root `package.json` scripts
-- [ ] Run `pnpm install`
+- [x] Run `pnpm install`
 
 ### 1.2 TypeScript Configuration
 - [x] Update `packages/opencode/tsconfig.json`:
   - Add paths alias: `"bun": ["./src/compat/module.ts"]`
   - Configure for Node.js 22+
 - [x] Update root `tsconfig.json` (removed @tsconfig/bun)
-- [ ] Verify `pnpm typecheck` setup
 
 ### 1.3 Compat Layer Skeleton
 - [x] Create `packages/opencode/src/compat/` directory
@@ -40,40 +38,67 @@ Migrate opencode from Bun runtime to Node.js using a **polyfill approach**. Inst
 
 ---
 
-## Phase 2: Core Polyfill Implementation
+## Phase 2: Core Polyfill Implementation ✅
 
 ### 2.1 File Operations
-- [ ] `compat/file.ts` — `Bun.file()`, `Bun.write()` → fs/promises
-  - Copy from `opencode_old_migration/packages/opencode/src/compat/file.ts`
-  - Adapt as needed
+- [x] `compat/file.ts` — `Bun.file()`, `Bun.write()` → fs/promises
 
 ### 2.2 Process Spawning
-- [ ] `compat/spawn.ts` — `Bun.spawn()` → execa
-- [ ] `compat/shell.ts` — `$` template tag → execa.$
+- [x] `compat/spawn.ts` — `Bun.spawn()` → execa
+- [x] `compat/shell.ts` — `$` template tag → execa.$
 
 ### 2.3 Utilities
-- [ ] `compat/glob.ts` — `Bun.Glob` → glob + minimatch
-- [ ] `compat/which.ts` — `Bun.which()` → which package
-- [ ] `compat/stream.ts` — `readableStreamToText()` etc.
-- [ ] `compat/resolve.ts` — `Bun.resolve()` → createRequire
-- [ ] `compat/url.ts` — `Bun.fileURLToPath()` → url module
+- [x] `compat/glob.ts` — `Bun.Glob` → glob + minimatch
+- [x] `compat/which.ts` — `Bun.which()` → which package
+- [x] `compat/stream.ts` — `readableStreamToText()` etc.
+- [x] `compat/resolve.ts` — `Bun.resolve()` → createRequire
+- [x] `compat/url.ts` — `Bun.fileURLToPath()` → url module
 
 ### 2.4 Wire Entry Point
-- [ ] Add `import "./compat/register"` to `src/index.ts` (first line)
+- [x] Add `import "./compat/register"` to `src/index.ts` (first line)
+
+### 2.5 Non-Core Packages (Session e6813dcf)
+- [x] Git hooks: `.husky/pre-push` → `pnpm typecheck`
+- [x] `bun:test` polyfill via tsconfig paths:
+  - `packages/app/src/compat/bun-test.ts` → vitest
+  - `packages/enterprise/src/compat/bun-test.ts` → vitest
+- [x] `packages/slack/tsconfig.json` — Remove @tsconfig/bun
+- [x] `packages/script/tsconfig.json` — Remove @tsconfig/bun
+- [x] `packages/ui/script/tailwind.ts` — Bun.file → fs/promises
+- [x] `packages/console/core/tsconfig.json` — Exclude admin scripts
+- [x] `packages/desktop/tsconfig.json` — Add vite/client types
+- [x] **Result: 11/12 packages pass typecheck**
 
 ---
 
-## Phase 3: Server & New APIs
+## Phase 3: Fix Remaining Compat Layer Issues 🟡
 
-### 3.1 Server
-- [ ] `compat/serve.ts` — `Bun.serve()` → @hono/node-server
+**Current blocker:** `packages/opencode` typecheck fails with these errors:
 
-### 3.2 New APIs (not in old migration)
-- [ ] `compat/sleep.ts` — `Bun.sleep()` → timers/promises
-- [ ] `compat/string.ts` — `Bun.stringWidth()` → string-width
-- [ ] `compat/hash.ts` — `Bun.hash.xxHash32()` → crypto or xxhash-wasm
-- [ ] `compat/net.ts` — `Bun.connect()` → net.Socket
-- [ ] Wire `Bun.env` → `process.env` in register.ts
+### 3.1 Missing fs.exists polyfill
+- [ ] `src/storage/storage.ts` uses `fs.exists()` which doesn't exist in Node.js
+- [ ] `src/util/filesystem.ts` imports `exists` from fs/promises
+- **Fix:** Add `exists` function using `fs.access()` or `fs.stat()`
+
+### 3.2 HTMLRewriter (Bun/Cloudflare specific)
+- [ ] `src/tool/webfetch.ts` uses `HTMLRewriter` class
+- **Fix:** Use alternative HTML parser (cheerio, htmlparser2, or linkedom)
+
+### 3.3 Bun namespace reference
+- [ ] `src/tool/read.ts:145` references `Bun` namespace for types
+- **Fix:** Add proper type definitions or use `any`
+
+### 3.4 Import path issues
+- [ ] `src/tool/bash.ts` imports with `.ts` extension
+- **Fix:** Remove extension or configure bundler
+
+### 3.5 Server & New APIs (files exist but may need fixes)
+- [x] `compat/serve.ts` — `Bun.serve()` → @hono/node-server
+- [x] `compat/sleep.ts` — `Bun.sleep()` → timers/promises
+- [x] `compat/string.ts` — `Bun.stringWidth()` → string-width
+- [x] `compat/hash.ts` — `Bun.hash.xxHash32()` → crypto
+- [x] `compat/net.ts` — `Bun.connect()` → net.Socket
+- [x] `Bun.env` → `process.env` wired in register.ts
 
 ---
 
