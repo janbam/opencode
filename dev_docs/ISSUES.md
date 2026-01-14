@@ -9,6 +9,9 @@
 |----|----------|------|-------------|-------|
 | I-006 | High | Runtime | .txt file imports not handled | Bun supports `import x from "foo.txt"` but Node.js/tsx doesn't. Need bundler or loader solution. |
 | I-007 | Medium | Types | serve() returns Promise<Server> not Server | Call sites expect synchronous return; need to await at each site or change architecture. |
+| I-008 | Medium | Types | fs/promises.exists() doesn't exist in Node.js | Bun adds `exists()` to fs/promises but Node.js doesn't have it. Need polyfill or use access(). |
+| I-009 | Medium | Types | HTMLRewriter not available | HTMLRewriter is Bun/Cloudflare Workers API for HTML streaming transforms. Need alternative (e.g., cheerio or htmlparser2). |
+| I-010 | Low | Types | BunFetchRequestInit type not resolved | Type defined in bun.d.ts but not picked up. May need explicit import or different declaration approach. |
 
 
 
