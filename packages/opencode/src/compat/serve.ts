@@ -11,6 +11,7 @@ import type { Server as NodeServer } from "node:http"
 export interface Server {
   port: number
   hostname: string
+  url: string
   stop(): void
 }
 
@@ -56,9 +57,12 @@ export function serve(
         hostname,
       },
       (info) => {
+        const actualPort = info.port
+        const actualHost = info.address
         resolve({
-          port: info.port,
-          hostname: info.address,
+          port: actualPort,
+          hostname: actualHost,
+          url: `http://${actualHost}:${actualPort}`,
           stop() {
             nodeServer.close()
           },

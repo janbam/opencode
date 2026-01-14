@@ -1,6 +1,6 @@
 import { BusEvent } from "@/bus/bus-event"
 import { Bus } from "@/bus"
-import { type IPty } from "bun-pty"
+import type { IPty } from "node-pty"
 import z from "zod"
 import { Identifier } from "../id/id"
 import { Log } from "../util/log"
@@ -16,8 +16,8 @@ export namespace Pty {
   const BUFFER_CHUNK = 64 * 1024
 
   const pty = lazy(async () => {
-    const { spawn } = await import("bun-pty")
-    return spawn
+    const nodePty = await import("node-pty")
+    return nodePty.spawn
   })
 
   export const Info = z

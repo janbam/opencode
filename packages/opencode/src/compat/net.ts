@@ -17,9 +17,10 @@ interface ConnectOptions {
   }
 }
 
-interface BunSocket {
+export interface BunSocket {
   end(): void
   write(data: string | Buffer): void
+  catch(handler: (error: Error) => void): BunSocket
 }
 
 /**
@@ -52,12 +53,19 @@ export function connect(options: ConnectOptions): BunSocket {
     }
   })
 
+  let errorHandler: ((error: Error) => void) | null = null
+
   const bunSocket: BunSocket = {
     end() {
       socket.end()
     },
     write(data: string | Buffer) {
       socket.write(data)
+    },
+    catch(handler: (error: Error) => void): BunSocket {
+      errorHandler = handler
+      socket.on("error", handler)
+      return bunSocket
     },
   }
 

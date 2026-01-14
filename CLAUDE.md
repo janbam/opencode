@@ -19,6 +19,60 @@ The old migration has working compat layer code to learn from. This project buil
 
 ---
 
+## Session Workflow
+
+### Keep Sessions Short
+
+**Default: Pass over early.** Don't stretch sessions to complete everything.
+
+- If a task spans multiple files/locations, it's fine to pass over mid-task
+- The next Claude instance will pick up exactly where you left off
+- Only extend a session if you're working on something that **must not be left open** (e.g., broken build, incomplete refactor that breaks tests)
+
+### Decision Points
+
+When you reach a point in the ROADMAP where a **decision needs to be made**:
+
+1. **Dedicate the session to research** — don't rush into implementation
+2. Think through options, trade-offs, implications
+3. **Document your decision** in both ROADMAP.md and PROGRESS.md
+4. Hand off — implementation starts next session
+
+One decision per session is fine. Decisions deserve focused attention.
+
+---
+
+## Session Protocol
+
+### Start of Session
+
+# 1. Read current state
+dev_docs/PROGRESS.md
+dev_docs/ROADMAP.md
+dev_docs/ISSUES.md
+
+
+### During Session
+- Pick the next uncompleted task from PROGRESS.md
+- IMPORTANT: when you've gathered enough information and understanding consult GPT5 as your second brain before proceeding!
+- Keep your TodoWrite list short! When your todos are completed and you're still under 100k context, you can add new ones
+- Reference `dev_docs/bun-api-replacements.md` for API mappings
+- Reference `dev_docs/migration-architecture.md` for build/architecture decisions
+- Test changes before marking complete
+
+### End of Session
+- Update `dev_docs/PROGRESS.md` with completed tasks
+- Update `dev_docs/ROADMAP.md` if needed
+- Commit all changes including dev_docs/
+
+IMPORTANT: Don't add additional backlogs, what has been done or what should be done next!!
+Only check off what has been done. The next instance will assess themselves what should be done next!
+Only use ultrayolo passover message when you have to end your session mid-task and the next instance needs critical information about open issues.
+
+**NO** "Notes for next session" or "Next Up" in PROGRESS.md or anywhere else!
+
+---
+
 ## How to Build the Polyfill
 
 ### Step 1: Understand the Patterns
@@ -160,6 +214,9 @@ When working in **ultrayolo** mode:
 
 ## MANDATORY: Consult GPT5 at Phase Start
 
+
+**GPT5 is your pair programmer.** Consult GPT5 **early and often**!
+
 **At the beginning of EACH session/phase, you MUST consult GPT5.**
 
 GPT5 often knows simpler approaches, gotchas, or better patterns. Consulting BEFORE implementation saves context and prevents rework.
@@ -180,3 +237,5 @@ mcp__GPT5__chat with:
 - For critiquing your solution before starting implementation
 
 See `dev_docs/polyfill-strategy.md` for the full strategy that GPT5 recommended.
+
+Pair programming with GPT accelerates and improves everything!

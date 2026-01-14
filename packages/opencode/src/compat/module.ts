@@ -6,17 +6,20 @@
  */
 
 // Re-export all Bun APIs that are imported from "bun"
-export { $ } from "./shell"
+export { $, ShellError } from "./shell"
 export { spawn, type SpawnOptions, type Subprocess } from "./spawn"
-export { file, write, type BunFile } from "./file"
-export { Glob } from "./glob"
+export { file, write, type BunFile, type BunFileStat } from "./file"
+export { Glob, type GlobScanOptions } from "./glob"
 export { serve, type Server } from "./serve"
 export { readableStreamToText, readableStreamToBuffer } from "./stream"
 export { fileURLToPath, pathToFileURL } from "./url"
 export { sleep } from "./sleep"
 export { stringWidth } from "./string"
-export { connect } from "./net"
+export { connect, type BunSocket } from "./net"
 export { which } from "./which"
 
 // Type re-exports
 export type { ShellCommand, ShellResult } from "./shell"
+
+// Re-export type declarations
+export type { BunFetchRequestInit, BunShell } from "./bun.d"

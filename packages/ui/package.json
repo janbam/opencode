@@ -28,7 +28,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "catalog:",
     "@tsconfig/node22": "catalog:",
-    "@types/bun": "catalog:",
+    "@types/node": "catalog:",
     "@types/katex": "0.16.7",
     "@types/luxon": "catalog:",
     "tailwindcss": "catalog:",

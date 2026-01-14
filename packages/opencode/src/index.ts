@@ -1,3 +1,6 @@
+// Bun compatibility layer - MUST be first import
+import "./compat/register"
+
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { RunCommand } from "./cli/cmd/run"

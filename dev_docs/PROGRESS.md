@@ -24,6 +24,7 @@ Our `no-bun` branch successfully migrated the July 2025 codebase to Node.js. How
 | Date | Session ID | Work Done |
 |------|------------|-----------|
 | 2026-01-14 | 74eedd32 | Phase 1 setup: tsconfigs, compat layer skeleton, package.json |
+| 2026-01-14 | 04fc973b | Phase 2: pnpm install, compat layer fixes, entry point wired, bun-pty→node-pty |
 
 ---
 
@@ -36,8 +37,8 @@ See `dev_docs/polyfill-strategy.md` for full details.
 | Session | Focus | Status |
 |---------|-------|--------|
 | 1 | Setup: tsconfigs, compat layer, package.json | ✅ Done (74eedd32) |
-| 2 | Run pnpm install, typecheck, fix errors | ⬚ Pending |
-| 3 | Wire entry point, bun-pty → node-pty | ⬚ Pending |
+| 2 | pnpm install, compat layer fixes, entry point, bun-pty→node-pty | ✅ Done (04fc973b) |
+| 3 | Handle .txt imports (bundler/loader), fix serve() Promise | ⬚ Pending |
 | 4 | Test pass + polish | ⬚ Pending |
 | 5 | Cleanup, document upgrade process | ⬚ Pending |
 

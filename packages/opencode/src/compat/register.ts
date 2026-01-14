@@ -12,12 +12,14 @@
 
 import { file, write } from "./file"
 import { spawn } from "./spawn"
+import { $, ShellError } from "./shell"
 import { Glob } from "./glob"
 import { serve } from "./serve"
 import { which } from "./which"
 import { sleep } from "./sleep"
 import { stringWidth } from "./string"
 import { connect } from "./net"
+import { readableStreamToText, readableStreamToBuffer } from "./stream"
 import { createHash } from "crypto"
 
 // Create the Bun global object
@@ -28,6 +30,10 @@ const BunPolyfill = {
 
   // Process spawning
   spawn,
+
+  // Shell operations
+  $,
+  ShellError,
 
   // Glob patterns
   Glob,
@@ -42,14 +48,26 @@ const BunPolyfill = {
   sleep,
   stringWidth,
 
+  // Stream utilities
+  readableStreamToText,
+  readableStreamToBuffer,
+
   // TCP connections
   connect,
 
   // Environment (direct proxy to process.env)
   env: process.env,
 
-  // Standard streams
-  stdin: process.stdin,
+  // Standard streams with text() support
+  stdin: Object.assign(process.stdin, {
+    async text(): Promise<string> {
+      const chunks: Buffer[] = []
+      for await (const chunk of process.stdin) {
+        chunks.push(chunk)
+      }
+      return Buffer.concat(chunks).toString("utf8")
+    },
+  }),
   stdout: process.stdout,
   stderr: process.stderr,
 

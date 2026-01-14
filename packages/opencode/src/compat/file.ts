@@ -4,9 +4,40 @@
  * Replaces Bun.file() and Bun.write() with Node.js fs/promises equivalents.
  */
 
-import { readFile, writeFile, access, stat, mkdir } from "node:fs/promises"
-import { constants } from "node:fs"
+import { readFile, writeFile, access, stat as fsStat, mkdir } from "node:fs/promises"
+import {
+  constants,
+  statSync,
+  type Stats,
+  createWriteStream,
+  mkdirSync,
+  type WriteStream,
+} from "node:fs"
 import * as path from "node:path"
+import { lookup } from "mime-types"
+
+/**
+ * File stat interface matching Bun's file stat return
+ */
+export interface BunFileStat {
+  size: number
+  mtime: Date
+  atime: Date
+  ctime: Date
+  birthtime: Date
+  isDirectory(): boolean
+  isFile(): boolean
+  isSymbolicLink(): boolean
+}
+
+/**
+ * File writer interface for streaming writes
+ */
+export interface BunFileWriter {
+  write(data: string | Buffer | Uint8Array): number
+  flush(): void
+  end(): void
+}
 
 /**
  * File handle interface matching Bun.file() return type
@@ -14,6 +45,9 @@ import * as path from "node:path"
 export interface BunFile {
   /** The file path */
   readonly name: string
+
+  /** MIME type of the file */
+  readonly type: string
 
   /** Check if file exists */
   exists(): Promise<boolean>
@@ -27,24 +61,43 @@ export interface BunFile {
   /** Read file as ArrayBuffer */
   arrayBuffer(): Promise<ArrayBuffer>
 
+  /** Read file as Uint8Array */
+  bytes(): Promise<Uint8Array>
+
+  /** Get file stats */
+  stat(): Promise<BunFileStat>
+
   /** Get file size in bytes (returns 0 if file doesn't exist) */
   size: number
 
   /** Write content to file */
   write(content: string | Buffer | ArrayBuffer | Uint8Array): Promise<void>
+
+  /** Get a synchronous file writer for streaming writes */
+  writer(): BunFileWriter
 }
 
 // Alias for backward compatibility
 export type FileHandle = BunFile
 
 /**
+ * Get MIME type from file path
+ */
+function getMimeType(filepath: string): string {
+  const mimeType = lookup(filepath)
+  return mimeType || "application/octet-stream"
+}
+
+/**
  * Create a file handle (replaces Bun.file())
  */
 export function file(filepath: string): BunFile {
   let cachedSize: number | null = null
+  const mimeType = getMimeType(filepath)
 
   return {
     name: filepath,
+    type: mimeType,
 
     async exists(): Promise<boolean> {
       try {
@@ -69,12 +122,30 @@ export function file(filepath: string): BunFile {
       return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
     },
 
+    async bytes(): Promise<Uint8Array> {
+      const buffer = await readFile(filepath)
+      return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)
+    },
+
+    async stat(): Promise<BunFileStat> {
+      const stats = await fsStat(filepath)
+      return {
+        size: stats.size,
+        mtime: stats.mtime,
+        atime: stats.atime,
+        ctime: stats.ctime,
+        birthtime: stats.birthtime,
+        isDirectory: () => stats.isDirectory(),
+        isFile: () => stats.isFile(),
+        isSymbolicLink: () => stats.isSymbolicLink(),
+      }
+    },
+
     get size(): number {
       // Synchronous size check (lazy loaded)
       if (cachedSize === null) {
         try {
-          const fs = require("node:fs")
-          const stats = fs.statSync(filepath)
+          const stats = statSync(filepath)
           cachedSize = stats.size
         } catch {
           cachedSize = 0
@@ -87,6 +158,27 @@ export function file(filepath: string): BunFile {
       await mkdir(path.dirname(filepath), { recursive: true })
       const data = content instanceof ArrayBuffer ? Buffer.from(content) : content
       await writeFile(filepath, data)
+    },
+
+    writer(): BunFileWriter {
+      // Ensure parent directory exists synchronously
+      mkdirSync(path.dirname(filepath), { recursive: true })
+
+      const stream = createWriteStream(filepath, { flags: "a" })
+      return {
+        write(data: string | Buffer | Uint8Array): number {
+          const buffer = typeof data === "string" ? Buffer.from(data) : Buffer.from(data)
+          stream.write(buffer)
+          return buffer.length
+        },
+        flush(): void {
+          // Node.js WriteStream doesn't have explicit flush, but write is buffered
+          // This is a no-op as data is written immediately
+        },
+        end(): void {
+          stream.end()
+        },
+      }
     },
   }
 }

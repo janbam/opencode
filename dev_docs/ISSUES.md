@@ -7,6 +7,8 @@
 
 | ID | Severity | Area | Description | Notes |
 |----|----------|------|-------------|-------|
+| I-006 | High | Runtime | .txt file imports not handled | Bun supports `import x from "foo.txt"` but Node.js/tsx doesn't. Need bundler or loader solution. |
+| I-007 | Medium | Types | serve() returns Promise<Server> not Server | Call sites expect synchronous return; need to await at each site or change architecture. |
 
 
 

@@ -9,11 +9,12 @@ import { minimatch } from "minimatch"
 
 export { minimatch }
 
-interface GlobScanOptions {
+export interface GlobScanOptions {
   cwd?: string
   absolute?: boolean
   dot?: boolean
   onlyFiles?: boolean
+  followSymlinks?: boolean
 }
 
 /**

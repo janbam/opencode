@@ -10,11 +10,35 @@ export interface ShellResult {
   exitCode: number | null
   stdout: Buffer
   stderr: Buffer
+  /** Combined stdout as string (text property for compatibility) */
+  text: string
+}
+
+/**
+ * Shell execution error (replaces $.ShellError)
+ */
+export class ShellError extends Error {
+  exitCode: number | null
+  stdout: Buffer
+  stderr: Buffer
+  command: string
+
+  constructor(message: string, exitCode: number | null, stdout: Buffer, stderr: Buffer, command: string) {
+    super(message)
+    this.name = "ShellError"
+    this.exitCode = exitCode
+    this.stdout = stdout
+    this.stderr = stderr
+    this.command = command
+  }
 }
 
 export interface ShellCommand {
   then<T>(resolve: (result: ShellResult) => T): Promise<T>
+  catch<T>(reject: (error: Error) => T): Promise<ShellResult | T>
   text(): Promise<string>
+  lines(): AsyncIterable<string>
+  arrayBuffer(): Promise<ArrayBuffer>
   env(vars: Record<string, string | undefined>): ShellCommand
   throws(shouldThrow: boolean): ShellCommand
   nothrow(): ShellCommand
@@ -56,18 +80,50 @@ function createShellCommand(strings: TemplateStringsArray, values: unknown[], op
 
   const shellCommand: ShellCommand = {
     then<T>(resolve: (result: ShellResult) => T): Promise<T> {
-      return getResult().then((result) =>
-        resolve({
+      return getResult().then((result) => {
+        const stdout = Buffer.from(String(result.stdout ?? ""))
+        const stderr = Buffer.from(String(result.stderr ?? ""))
+        return resolve({
           exitCode: result.exitCode ?? null,
-          stdout: Buffer.from(String(result.stdout ?? "")),
-          stderr: Buffer.from(String(result.stderr ?? "")),
+          stdout,
+          stderr,
+          text: stdout.toString("utf8"),
         })
-      )
+      })
     },
 
     async text(): Promise<string> {
       const result = await getResult()
       return String(result.stdout ?? "")
+    },
+
+    async arrayBuffer(): Promise<ArrayBuffer> {
+      const result = await getResult()
+      const buf = Buffer.from(String(result.stdout ?? ""))
+      return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)
+    },
+
+    async *lines(): AsyncIterable<string> {
+      const result = await getResult()
+      const text = String(result.stdout ?? "")
+      for (const line of text.split("\n")) {
+        yield line
+      }
+    },
+
+    catch<T>(reject: (error: Error) => T): Promise<ShellResult | T> {
+      return getResult()
+        .then((result) => {
+          const stdout = Buffer.from(String(result.stdout ?? ""))
+          const stderr = Buffer.from(String(result.stderr ?? ""))
+          return {
+            exitCode: result.exitCode ?? null,
+            stdout,
+            stderr,
+            text: stdout.toString("utf8"),
+          } as ShellResult
+        })
+        .catch(reject)
     },
 
     env(vars: Record<string, string | undefined>): ShellCommand {
@@ -123,3 +179,8 @@ $.raw = function raw(command: string): ShellCommand {
   const strings = Object.assign([command], { raw: [command] }) as TemplateStringsArray
   return createShellCommand(strings, [], { shouldThrow: true, quiet: false })
 }
+
+/**
+ * Shell error class attached to $ for instanceof checks
+ */
+$.ShellError = ShellError
