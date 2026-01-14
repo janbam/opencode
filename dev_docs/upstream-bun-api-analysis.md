@@ -214,3 +214,144 @@ Based on new imports in index.ts:
 - Desktop app support (`bun-pty` for terminal)
 - Plan mode features
 - New providers (GitLab Duo, 302ai, etc.)
+
+---
+
+## Bun Dependencies in Other Packages
+
+Not just `opencode` — other packages in the monorepo also have Bun dependencies:
+
+| Package | Bun Deps | Impact |
+|---------|----------|--------|
+| **opencode** | `@types/bun`, `@tsconfig/bun`, `bun-pty` | Main target — runtime deps |
+| **app** | `@types/bun`, `@tsconfig/bun` | Types/config only |
+| **desktop** | `@types/bun` | Types only |
+| **console/core** | `@types/bun` | Types only |
+| **console/mail** | `@tsconfig/bun` | Config only |
+| **util** | `@types/bun` | Types only |
+| **script** | `@types/bun` | Types only |
+| **ui** | `@types/bun` | Types only |
+
+**Packages with NO Bun dependencies:**
+- function
+- web
+- plugin
+- enterprise
+- slack
+
+### Assessment
+
+Most packages only have `@types/bun` or `@tsconfig/bun` — these are **build-time only** and easy to remove. The only package with **runtime** Bun dependencies is `opencode` (which has `bun-pty`).
+
+---
+
+## bun-pty Deep Dive
+
+### What is it?
+
+`bun-pty` is a PTY (pseudo-terminal) library that allows spawning interactive shell sessions. It's used for the **built-in terminal feature** in the IDE.
+
+### Where is it used?
+
+**Single file:** `packages/opencode/src/pty/index.ts`
+
+```typescript
+import { type IPty } from "bun-pty"
+const { spawn } = await import("bun-pty")
+```
+
+### What it does
+
+The `Pty` namespace provides:
+
+| Function | Purpose |
+|----------|---------|
+| `create()` | Spawn a new shell process in a PTY |
+| `write()` | Send input to the terminal |
+| `resize()` | Change terminal dimensions (rows/columns) |
+| `connect()` | Connect a WebSocket client to a PTY |
+| `remove()` | Kill and cleanup a PTY session |
+| `update()` | Update title or resize TTY |
+| `list()` / `get()` | Query active sessions |
+
+**Terminal capabilities:**
+- Spawns shell processes with configurable command, args, cwd, environment
+- Sets TERM to `xterm-256color`
+- Captures stdin/stdout via `onData()` callback
+- Handles process exit via `onExit()` callback
+- Maintains 2MB buffer of terminal output for latecomers
+- Supports WebSocket subscriptions for real-time terminal output
+
+### Node.js Replacement
+
+**`node-pty`** — Industry standard, direct replacement
+
+| Aspect | node-pty |
+|--------|----------|
+| Status | ✅ Actively maintained |
+| API | Nearly identical to bun-pty |
+| Users | VS Code, iTerm2, Hyper, etc. |
+| Platform | Linux, macOS, Windows |
+
+**Migration complexity: LOW**
+- Same spawn signature and callback pattern
+- Single file to modify
+- Well-isolated from rest of codebase
+
+### Example Migration
+
+```typescript
+// Before (bun-pty)
+import { type IPty } from "bun-pty"
+const { spawn } = await import("bun-pty")
+const pty = spawn(command, args, { cwd, env, rows, cols })
+
+// After (node-pty)
+import { type IPty, spawn } from "node-pty"
+const pty = spawn(command, args, { cwd, env, rows, cols })
+```
+
+### How Central is bun-pty?
+
+**Moderate-to-High centrality:**
+- It's a **feature**, not infrastructure (could theoretically be disabled)
+- But it's a **core IDE feature** — terminal access is critical for a development tool
+- Removing it entirely would disable terminal functionality
+
+**Migration risk: LOW** — Direct replacement exists, API is compatible.
+
+---
+
+## Files with `from "bun"` Imports (Full List)
+
+Found in 30+ files across opencode package:
+
+```
+packages/opencode/src/installation/index.ts
+packages/opencode/src/tool/bash.ts
+packages/opencode/src/format/formatter.ts
+packages/opencode/src/worktree/index.ts
+packages/opencode/src/snapshot/index.ts
+packages/opencode/src/lsp/server.ts
+packages/opencode/src/bun/index.ts
+packages/opencode/src/ide/index.ts
+packages/opencode/src/session/message-v2.ts
+packages/opencode/src/session/prompt.ts
+packages/opencode/src/file/index.ts
+packages/opencode/src/file/watcher.ts
+packages/opencode/src/file/ripgrep.ts
+packages/opencode/src/project/vcs.ts
+packages/opencode/src/project/project.ts
+packages/opencode/src/storage/storage.ts
+packages/opencode/src/cli/cmd/pr.ts
+packages/opencode/src/cli/cmd/uninstall.ts
+packages/opencode/src/cli/cmd/github.ts
+packages/opencode/src/cli/cmd/tui/util/clipboard.ts
+packages/opencode/src/util/archive.ts
+packages/opencode/script/build.ts
+packages/opencode/script/publish.ts
++ test files
++ sdk/plugin build scripts
+```
+
+Many of these are **new files** since our July 2025 fork that would need migration.
