@@ -1,5 +1,9 @@
 #!/usr/bin/env tsx
 // NO-BUN: Converted from Bun.file() to Node.js fs/promises
+// Original:
+// #!/usr/bin/env bun
+// const colors = await Bun.file(import.meta.dir + "/colors.txt").text()
+// await Bun.file(import.meta.dir + "/../src/styles/tailwind/colors.css").write(output.trim())
 
 import { readFile, writeFile } from "node:fs/promises"
 import { dirname, join } from "node:path"
