@@ -7,10 +7,18 @@
 
 | ID | Severity | Area | Description | Notes |
 |----|----------|------|-------------|-------|
-| ~~I-002~~ | ~~Low~~ | ~~Tests~~ | ~~4 edit.test.ts failures (EscapeNormalizedReplacer)~~ | **RESOLVED**: Tests disabled (replacer intentionally commented out) |
-| ~~I-003~~ | ~~High~~ | ~~Runtime~~ | ~~Server.address() returns null on startup~~ | **RESOLVED**: async callback pattern + Response duck typing |
-| ~~I-004~~ | ~~Low~~ | ~~Types~~ | ~~19 pnpm type inference errors~~ | **RESOLVED**: disabled declaration emit |
-| ~~I-005~~ | ~~Medium~~ | ~~Tests~~ | ~~vitest fails: zod-openapi extension not loaded~~ | **RESOLVED**: centralized lib/z.ts wrapper |
+
+
+
+## Resolved Issues
+
+| ID | Area | Description | Resolution |
+|----|------|-------------|------------|
+| I-001 | Build | ESM import resolution in bundled code | **Resolved**: Switched to tsx-based production build — no bundling needed |
+| I-002 | Tests | 4 edit.test.ts failures (EscapeNormalizedReplacer) | **Resolved**: Tests disabled to match intentionally-disabled replacer (cf83e31) |
+| I-003 | Runtime | Server.address() returns null on startup | **Resolved**: Async callback pattern for @hono/node-server + duck typing for Response |
+| I-004 | Types | 19 pnpm type inference errors (TS2742, TS4094, TS4058) | **Resolved**: Disabled `declaration` and `declarationMap` in tsconfig (not needed for local deployment) |
+| I-005 | Tests | vitest zod-openapi extension not loaded | **Resolved**: Created `src/lib/z.ts` centralized wrapper; all `.openapi()` files import from there |
 
 ### I-003: Server.address() Returns Null (RESOLVED)
 
@@ -107,16 +115,6 @@ All files using `.openapi()` now import from `../lib/z` instead of `"zod"`.
 - 11 files updated to import from `lib/z`
 
 **Test result:** 41/46 passing (5 failures are pre-existing I-002, not zod-related)
-
-## Resolved Issues
-
-| ID | Area | Description | Resolution |
-|----|------|-------------|------------|
-| I-001 | Build | ESM import resolution in bundled code | **Resolved**: Switched to tsx-based production build — no bundling needed |
-| I-002 | Tests | 4 edit.test.ts failures (EscapeNormalizedReplacer) | **Resolved**: Tests disabled to match intentionally-disabled replacer (cf83e31) |
-| I-003 | Runtime | Server.address() returns null on startup | **Resolved**: Async callback pattern for @hono/node-server + duck typing for Response |
-| I-004 | Types | 19 pnpm type inference errors (TS2742, TS4094, TS4058) | **Resolved**: Disabled `declaration` and `declarationMap` in tsconfig (not needed for local deployment) |
-| I-005 | Tests | vitest zod-openapi extension not loaded | **Resolved**: Created `src/lib/z.ts` centralized wrapper; all `.openapi()` files import from there |
 
 ### I-001: ESM Import Resolution (RESOLVED)
 

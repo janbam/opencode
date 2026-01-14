@@ -23,13 +23,14 @@ The old migration has working compat layer code to learn from. This project buil
 
 ### Step 1: Understand the Patterns
 
-Read from the old migration (`/home/jan/src/opencode_old_migration`):
+Read from the old migration (`/home/jan/src/opencode_old_migration`).
 
-```
+
+Important files:
 packages/opencode/src/compat/    # Working Node.js implementations
 dev_docs/bun-api-replacements.md # API mapping examples
-dev_docs/archived/               # Original migration docs
-```
+dev_docs/                        # Original migration docs
+
 
 These show exactly how each Bun API was replaced with Node.js equivalents.
 
@@ -149,7 +150,7 @@ pnpm dev -- --help
 
 ## Autonomous Mode
 
-Work in **ultrayolo** mode:
+When working in **ultrayolo** mode:
 - Don't ask for confirmation on standard tasks
 - Test your changes
 - Commit working increments
@@ -161,11 +162,6 @@ Work in **ultrayolo** mode:
 
 **At the beginning of EACH session/phase, you MUST consult GPT5.**
 
-Before writing any code, share:
-1. What phase you're starting (from session plan)
-2. What you're about to implement
-3. Any uncertainties or decisions to make
-
 GPT5 often knows simpler approaches, gotchas, or better patterns. Consulting BEFORE implementation saves context and prevents rework.
 
 ```
@@ -176,9 +172,11 @@ mcp__GPT5__chat with:
 ```
 
 **Also consult when:**
-- Debugging something for >10 minutes
+- Running into issues
 - Making architectural decisions
 - Unsure about Node.js/TypeScript patterns
-- Stuck on anything
+- For finding alternative solutions
+- For optimizing your solution
+- For critiquing your solution before starting implementation
 
 See `dev_docs/polyfill-strategy.md` for the full strategy that GPT5 recommended.

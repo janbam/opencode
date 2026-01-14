@@ -2,7 +2,7 @@
 
 > Branch: `no-bun-v2`
 > Target: Node.js 22+ LTS
-> Status: 🟡 Phase 1 — Setup
+> Status: 🟡 Phase 1 — Setup (in progress)
 >
 > **SCOPE: Linux only, local deployment only, no publishing**
 
@@ -17,25 +17,26 @@ Migrate opencode from Bun runtime to Node.js using a **polyfill approach**. Inst
 ## Phase 1: Setup & Dependencies
 
 ### 1.1 Package Configuration
-- [ ] Update `packages/opencode/package.json`:
+- [x] Update `packages/opencode/package.json`:
   - Remove: `@types/bun`, `@tsconfig/bun`, `bun-pty`
-  - Add: `execa`, `glob`, `minimatch`, `which`, `@hono/node-server`, `node-pty`, `string-width`, `xxhash-wasm`
+  - Add: `execa`, `glob`, `minimatch`, `which`, `@hono/node-server`, `node-pty`, `string-width`
   - Change scripts: `bun` → `tsx`
 - [ ] Update root `package.json` scripts
 - [ ] Run `pnpm install`
 
 ### 1.2 TypeScript Configuration
-- [ ] Update `packages/opencode/tsconfig.json`:
+- [x] Update `packages/opencode/tsconfig.json`:
   - Add paths alias: `"bun": ["./src/compat/module.ts"]`
   - Configure for Node.js 22+
-- [ ] Create `src/compat/bun.d.ts` type definitions
+- [x] Update root `tsconfig.json` (removed @tsconfig/bun)
 - [ ] Verify `pnpm typecheck` setup
 
 ### 1.3 Compat Layer Skeleton
-- [ ] Create `packages/opencode/src/compat/` directory
-- [ ] Create `register.ts` (attaches Bun to globalThis)
-- [ ] Create `module.ts` (exports for `import ... from "bun"`)
-- [ ] Create `index.ts` (re-exports)
+- [x] Create `packages/opencode/src/compat/` directory
+- [x] Create `register.ts` (attaches Bun to globalThis)
+- [x] Create `module.ts` (exports for `import ... from "bun"`)
+- [x] Create `index.ts` (re-exports)
+- [x] Create all implementation files (file, shell, spawn, glob, which, stream, url, resolve, sleep, string, net, serve)
 
 ---
 
