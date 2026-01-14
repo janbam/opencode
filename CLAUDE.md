@@ -2,147 +2,162 @@
 
 **Goal:** Run opencode on Node.js 22+ instead of Bun
 
-## Current Status: Polyfill Strategy
+## Directory Setup
 
-We're using a **polyfill approach** instead of file-by-file migration. This keeps upstream code unchanged and makes future syncs trivial.
+| Directory | Branch | Purpose |
+|-----------|--------|---------|
+| `/home/jan/src/opencode` | `no-bun-v2` | **Active work** — current upstream + polyfill |
+| `/home/jan/src/opencode_old_migration` | `no-bun` | **Reference** — legacy file-by-file migration |
 
-### Branches
+The old migration has working compat layer code to learn from. This project builds the polyfill on fresh upstream.
 
-| Branch | Location | Purpose |
-|--------|----------|---------|
-| `no-bun` | `/home/jan/src/opencode` | Legacy migration (July 2025 fork) — **reference only** |
-| `no-bun-v2` | `/home/jan/src/opencode-polyfill` | Polyfill on current upstream — **active work** |
+## Scope Constraints
 
-### Setup (Git Worktree)
+1. **Linux only** — No Windows, no macOS
+2. **Local deployment only** — No npm publishing
+3. **Minimal upstream changes** — Polyfill keeps diff small (~10 files)
 
-```bash
-cd /home/jan/src/opencode
-git worktree add ../opencode-polyfill upstream/dev -b no-bun-v2
-```
+---
 
-## The Polyfill Approach
+## How to Build the Polyfill
 
-Instead of editing every file to replace Bun imports, we inject a polyfill that makes our Node.js implementations available as `globalThis.Bun` and as the `"bun"` module.
+### Step 1: Understand the Patterns
 
-**Key insight:** Upstream code stays unchanged → future upstream syncs are easy.
-
-See `dev_docs/polyfill-strategy.md` for full implementation details.
-
-### Core Files to Create
+Read from the old migration (`/home/jan/src/opencode_old_migration`):
 
 ```
-packages/opencode/src/compat/
-├── register.ts    # Attaches Bun to globalThis (run at startup)
-├── module.ts      # Exports for `import ... from "bun"`
-├── bun.d.ts       # Type definitions
-├── file.ts        # Bun.file(), Bun.write()
-├── spawn.ts       # Bun.spawn()
-├── shell.ts       # $ template tag
-├── glob.ts        # Bun.Glob
-├── which.ts       # Bun.which()
-├── serve.ts       # Bun.serve()
-├── sleep.ts       # Bun.sleep()        [NEW]
-├── string.ts      # Bun.stringWidth()  [NEW]
-├── hash.ts        # Bun.hash.xxHash32()[NEW]
-└── net.ts         # Bun.connect()      [NEW]
+packages/opencode/src/compat/    # Working Node.js implementations
+dev_docs/bun-api-replacements.md # API mapping examples
+dev_docs/archived/               # Original migration docs
 ```
 
-### The One Upstream Edit
+These show exactly how each Bun API was replaced with Node.js equivalents.
+
+### Step 2: Set Up TypeScript & Dependencies
+
+In THIS project:
+
+1. Update `packages/opencode/package.json`:
+   - Remove: `@types/bun`, `@tsconfig/bun`, `bun-pty`
+   - Add: `execa`, `glob`, `minimatch`, `which`, `@hono/node-server`, `node-pty`, `string-width`
+   - Change scripts from `bun` to `tsx`
+
+2. Update `packages/opencode/tsconfig.json`:
+   - Add paths alias: `"bun": ["./src/compat/module.ts"]`
+   - Include compat type definitions
+
+3. Run `pnpm install`
+
+### Step 3: Create the Polyfill
+
+Create `packages/opencode/src/compat/` with:
+
+| File | Purpose |
+|------|---------|
+| `register.ts` | Attaches `Bun` to `globalThis` — import at app entry |
+| `module.ts` | Exports for `import { $ } from "bun"` |
+| `bun.d.ts` | Type definitions for Bun global and module |
+| `file.ts` | `Bun.file()`, `Bun.write()` → fs/promises |
+| `spawn.ts` | `Bun.spawn()` → execa |
+| `shell.ts` | `$` template tag → execa.$ |
+| `glob.ts` | `Bun.Glob` → glob + minimatch |
+| `which.ts` | `Bun.which()` → which package |
+| `serve.ts` | `Bun.serve()` → @hono/node-server |
+| `sleep.ts` | `Bun.sleep()` → timers/promises |
+| `string.ts` | `Bun.stringWidth()` → string-width |
+| `hash.ts` | `Bun.hash.xxHash32()` → crypto |
+| `net.ts` | `Bun.connect()` → net.Socket |
+
+Copy implementations from `opencode_old_migration/packages/opencode/src/compat/` and adapt.
+
+### Step 4: Wire the Entry Point
 
 ```typescript
-// packages/opencode/src/index.ts — ADD THIS AT THE VERY TOP
+// packages/opencode/src/index.ts — ADD AT VERY TOP
 import "./compat/register"
 
 // ... rest of upstream code unchanged
 ```
 
-## Scope Constraints
+### Step 5: Handle bun-pty
 
-1. **Linux only** — No Windows, no macOS
-2. **Local deployment only** — No npm publishing, no GitHub releases
-3. **Minimal upstream changes** — Polyfill approach keeps diff small
+Single file change: `packages/opencode/src/pty/index.ts`
+- Replace `bun-pty` import with `node-pty`
+- API is nearly identical
+
+### Step 6: Test
+
+```bash
+pnpm install
+pnpm typecheck
+pnpm test
+pnpm dev -- --help
+```
+
+---
+
+## Session Plan
+
+| Session | Focus |
+|---------|-------|
+| 1 | TypeScript setup, dependencies, compat/ skeleton |
+| 2 | Core polyfill: file, spawn, shell, glob, which |
+| 3 | Server + remaining: serve, sleep, string, hash, net |
+| 4 | bun-pty → node-pty, test pass |
+| 5 | Polish, cleanup, verify full app works |
+
+---
 
 ## Key Documents
 
 | Document | Purpose |
 |----------|---------|
 | `dev_docs/PROGRESS.md` | Session log and status |
-| `dev_docs/polyfill-strategy.md` | Full implementation plan |
-| `dev_docs/upstream-bun-api-analysis.md` | Current upstream Bun API usage |
-| `dev_docs/bun-api-replacements.md` | API mapping reference (from legacy work) |
+| `dev_docs/polyfill-strategy.md` | Full strategy (GPT-5 consultation) |
+| `dev_docs/upstream-bun-api-analysis.md` | All Bun APIs in current upstream |
+| `dev_docs/bun-api-replacements.md` | Code examples for each API |
 
-## Session Protocol
-
-### Start of Session
-
-```bash
-# 1. Go to the polyfill worktree
-cd /home/jan/src/opencode-polyfill
-
-# 2. Read current state
-cat dev_docs/PROGRESS.md
-cat dev_docs/polyfill-strategy.md
-```
-
-### During Session
-
-- Work in the polyfill worktree (`opencode-polyfill`)
-- Reference the legacy `no-bun` branch for compat code patterns
-- Test changes before marking complete
-- Keep upstream files unchanged — fix the polyfill instead
-
-### End of Session
-
-- Update `dev_docs/PROGRESS.md` with completed work
-- Commit to `no-bun-v2` branch
-- Push if ready
+---
 
 ## Quick Reference
 
 ### Bun API → Node.js Mapping
 
-| Bun API | Polyfill Implementation |
-|---------|------------------------|
+| Bun API | Replacement |
+|---------|-------------|
 | `Bun.file()` / `Bun.write()` | fs/promises |
 | `Bun.spawn()` | execa |
+| `$ from "bun"` | execa.$ |
 | `Bun.Glob` | glob + minimatch |
 | `Bun.which()` | which package |
 | `Bun.serve()` | @hono/node-server |
-| `$ from "bun"` | execa.$ |
 | `Bun.sleep()` | timers/promises |
-| `Bun.stringWidth()` | string-width package |
-| `Bun.hash.xxHash32()` | xxhash-wasm or crypto |
+| `Bun.stringWidth()` | string-width |
+| `Bun.hash.xxHash32()` | crypto |
 | `Bun.env` | process.env |
 | `Bun.connect()` | net.Socket |
 | `bun-pty` | node-pty |
 
 ### Upstream Stats (2026-01-14)
 
-- **Version:** v1.1.19
-- **Commit:** 73d5cacc0
+- **Version:** v1.1.19 (commit 73d5cacc0)
 - **Source files:** 309
-- **Bun API coverage:** ~95% already solved
+- **Bun API coverage:** ~95% solved in old migration
 - **New APIs:** 5 (sleep, stringWidth, xxHash32, env, connect)
+
+---
 
 ## Autonomous Mode
 
-You are running in **ultrayolo** mode. Work autonomously:
+Work in **ultrayolo** mode:
 - Don't ask for confirmation on standard tasks
 - Test your changes
 - Commit working increments
 - Keep sessions short (<120k context)
-- Consult GPT5 when stuck or making decisions
-
-## Proactively Consult GPT5
-
-**GPT5 is your pair programmer.** Use it for:
-- Implementation questions
-- Debugging help
-- Second opinions on trade-offs
-- Current library/API knowledge
+- Consult GPT5 when stuck
 
 ```
 mcp__GPT5__chat with:
-- reasoning_effort: "high" (for complex problems)
+- reasoning_effort: "high"
 - Self-contained context (GPT5 has no project knowledge)
 ```
