@@ -1,278 +1,173 @@
-# Bun to Node.js Migration Roadmap
+# Bun to Node.js Migration Roadmap (Polyfill Approach)
 
-> Branch: `no-bun`
+> Branch: `no-bun-v2`
 > Target: Node.js 22+ LTS
-> Status: 🟡 Phase 8 — E2E Testing
+> Status: 🟡 Phase 1 — Setup
 >
 > **SCOPE: Linux only, local deployment only, no publishing**
 
 ## Overview
 
-Migrate opencode from Bun runtime to Node.js while maintaining feature parity. The codebase has **114 Bun API usages across 33 files**.
+Migrate opencode from Bun runtime to Node.js using a **polyfill approach**. Instead of editing 309 source files, we inject a compatibility layer that provides `globalThis.Bun` and a `"bun"` module shim.
+
+**Key insight:** Upstream code stays unchanged → future upstream syncs are trivial.
 
 ---
 
-## Phase 1: Foundation Setup
+## Phase 1: Setup & Dependencies
 
-### 1.1 Package Manager Migration
-- [ ] Create `pnpm-workspace.yaml`
-- [ ] Convert `bun.lock` → `pnpm-lock.yaml`
-- [ ] Replace `catalog:` references with `pnpm.overrides`
-- [ ] Update all `package.json` files
-- [ ] Verify workspace linking works
+### 1.1 Package Configuration
+- [ ] Update `packages/opencode/package.json`:
+  - Remove: `@types/bun`, `@tsconfig/bun`, `bun-pty`
+  - Add: `execa`, `glob`, `minimatch`, `which`, `@hono/node-server`, `node-pty`, `string-width`, `xxhash-wasm`
+  - Change scripts: `bun` → `tsx`
+- [ ] Update root `package.json` scripts
+- [ ] Run `pnpm install`
 
-### 1.2 Add New Dependencies
-```bash
-pnpm add -w execa glob minimatch which @hono/node-server env-paths
-pnpm add -wD tsx esbuild concurrently
-```
+### 1.2 TypeScript Configuration
+- [ ] Update `packages/opencode/tsconfig.json`:
+  - Add paths alias: `"bun": ["./src/compat/module.ts"]`
+  - Configure for Node.js 22+
+- [ ] Create `src/compat/bun.d.ts` type definitions
+- [ ] Verify `pnpm typecheck` setup
 
-### 1.3 Update TypeScript Config
-- [ ] Ensure `"type": "module"` in all package.json
-- [ ] Update tsconfig for Node.js target
-- [ ] Verify `tsc --noEmit` passes
-
-### 1.4 Update Dev Scripts
-```json
-{
-  "dev": "tsx watch packages/opencode/src/index.ts",
-  "check": "tsc --noEmit",
-  "build": "esbuild packages/opencode/src/index.ts --bundle --platform=node --format=cjs --target=node22 --outfile=dist/cli.cjs"
-}
-```
+### 1.3 Compat Layer Skeleton
+- [ ] Create `packages/opencode/src/compat/` directory
+- [ ] Create `register.ts` (attaches Bun to globalThis)
+- [ ] Create `module.ts` (exports for `import ... from "bun"`)
+- [ ] Create `index.ts` (re-exports)
 
 ---
 
-## Phase 2: API Replacements
+## Phase 2: Core Polyfill Implementation
 
-### 2.1 Create Compatibility Layer
-Create `packages/opencode/src/compat/` with Node.js implementations:
+### 2.1 File Operations
+- [ ] `compat/file.ts` — `Bun.file()`, `Bun.write()` → fs/promises
+  - Copy from `opencode_old_migration/packages/opencode/src/compat/file.ts`
+  - Adapt as needed
 
-- [ ] `compat/file.ts` - File operations (Bun.file, Bun.write)
-- [ ] `compat/spawn.ts` - Process spawning (Bun.spawn)
-- [ ] `compat/glob.ts` - Glob patterns (Bun.Glob)
-- [ ] `compat/which.ts` - Executable lookup (Bun.which)
-- [ ] `compat/shell.ts` - Shell template ($)
-- [ ] `compat/stream.ts` - Stream utilities
-- [ ] `compat/resolve.ts` - Module resolution
-- [ ] `compat/url.ts` - URL utilities
+### 2.2 Process Spawning
+- [ ] `compat/spawn.ts` — `Bun.spawn()` → execa
+- [ ] `compat/shell.ts` — `$` template tag → execa.$
 
-### 2.2 File-by-File Migration
+### 2.3 Utilities
+- [ ] `compat/glob.ts` — `Bun.Glob` → glob + minimatch
+- [ ] `compat/which.ts` — `Bun.which()` → which package
+- [ ] `compat/stream.ts` — `readableStreamToText()` etc.
+- [ ] `compat/resolve.ts` — `Bun.resolve()` → createRequire
+- [ ] `compat/url.ts` — `Bun.fileURLToPath()` → url module
 
-**High Priority (Core functionality):**
-| File | Bun APIs Used | Complexity |
-|------|---------------|------------|
-| `src/tool/bash.ts` | spawn | Low |
-| `src/tool/edit.ts` | file, write | Low |
-| `src/tool/write.ts` | file, write | Low |
-| `src/tool/read.ts` | file | Low |
-| `src/tool/grep.ts` | spawn, file | Low |
-| `src/tool/glob.ts` | file | Low |
-| `src/tool/ls.ts` | Glob | Medium |
-| `src/server/server.ts` | serve | Medium |
-| `src/session/index.ts` | file | Low |
-
-**Medium Priority:**
-| File | Bun APIs Used | Complexity |
-|------|---------------|------------|
-| `src/bun/index.ts` | spawn, file, write | Medium |
-| `src/cli/cmd/tui.ts` | spawn, embeddedFiles, file, write | **High** |
-| `src/lsp/server.ts` | $, which, spawn, file | Medium |
-| `src/file/ripgrep.ts` | $ | Low |
-| `src/file/fzf.ts` | which, file | Low |
-| `src/format/formatter.ts` | which | Low |
-| `src/format/index.ts` | spawn | Low |
-
-**Lower Priority:**
-| File | Bun APIs Used | Complexity |
-|------|---------------|------------|
-| `src/app/app.ts` | file, write | Low |
-| `src/auth/copilot.ts` | file | Low |
-| `src/config/config.ts` | file | Low |
-| `src/global/index.ts` | file | Low |
-| `src/installation/index.ts` | $ | Low |
-| `src/snapshot/index.ts` | $ | Low |
-| `src/storage/storage.ts` | file | Low |
-| `src/provider/models.ts` | file, write | Low |
-| `src/util/log.ts` | file | Low |
-| `src/util/filesystem.ts` | file | Low |
-
-### 2.3 Remove Bun Types
-- [ ] Remove `@types/bun` from devDependencies
-- [ ] Remove `@tsconfig/bun` from devDependencies
-- [ ] Update imports to remove `from "bun"`
+### 2.4 Wire Entry Point
+- [ ] Add `import "./compat/register"` to `src/index.ts` (first line)
 
 ---
 
-## Phase 3: TUI Integration (Download Approach)
+## Phase 3: Server & New APIs
 
-> **Decision: Download TUI on first run** (not embedded via SEA)
+### 3.1 Server
+- [ ] `compat/serve.ts` — `Bun.serve()` → @hono/node-server
 
-- [ ] Create `src/tui/downloader.ts`
-- [ ] Implement checksum verification
-- [ ] Use `env-paths` for cache location
-- [ ] ~~Handle platform/arch detection~~ (Linux x64 only)
-- [ ] Add progress indicator for download
-
----
-
-## Phase 4: Build System (Linux Only)
-
-### 4.1 Development Build
-- [ ] Verify `tsx watch` works correctly
-- [ ] Test Go TUI spawning in dev mode
-- [ ] Ensure hot reload works
-
-### 4.2 Production Build
-- [ ] Create esbuild config for bundling
-- [ ] Write `scripts/build.ts` for build pipeline
-- [ ] ~~SEA config~~ (skipped — using download approach)
-- [ ] ~~Cross-platform builds~~ (skipped — Linux only)
+### 3.2 New APIs (not in old migration)
+- [ ] `compat/sleep.ts` — `Bun.sleep()` → timers/promises
+- [ ] `compat/string.ts` — `Bun.stringWidth()` → string-width
+- [ ] `compat/hash.ts` — `Bun.hash.xxHash32()` → crypto or xxhash-wasm
+- [ ] `compat/net.ts` — `Bun.connect()` → net.Socket
+- [ ] Wire `Bun.env` → `process.env` in register.ts
 
 ---
 
-## Phase 5: Publishing — SKIPPED
+## Phase 4: PTY & Testing
 
-> **Not needed** — local deployment only, no npm/GitHub/Homebrew/AUR
+### 4.1 Replace bun-pty
+- [ ] Update `src/pty/index.ts`:
+  - Change `import { type IPty } from "bun-pty"` → `import { type IPty } from "node-pty"`
+  - Change dynamic import accordingly
 
----
+### 4.2 Test Suite
+- [ ] Run `pnpm test` — fix any failures
+- [ ] Run `pnpm typecheck` — fix any type errors
 
-## Phase 6: Testing & Validation (Linux Only)
-
-### 6.1 Unit Tests
-- [ ] Update test runner (vitest or node:test)
-- [ ] Run existing tests
-- [ ] Fix any failures
-
-### 6.2 Integration Tests
-- [ ] Test all CLI commands
-- [ ] Test TUI launch and communication
-- [ ] Test MCP server functionality
-- [ ] Test LSP integration
-
-### 6.3 Platform Testing
-- [ ] Linux x64 only
+### 4.3 Manual Testing
+- [ ] `pnpm dev -- --help` works
+- [ ] `pnpm dev -- --version` works
+- [ ] Basic app flow works
 
 ---
 
-## Phase 7: Cleanup & Documentation
+## Phase 5: Polish & Verification
 
-- [x] Remove all Bun-specific code
-- [x] Update README.md
-- [ ] Update CONTRIBUTING.md if exists
-- [x] Remove `bunfig.toml`
-- [ ] Clean up unused dependencies
-- [x] Final review of all changes
-
----
-
-## Phase 8: E2E Testing (Runtime Verification)
-
-> **Added after discovering runtime issues during Phase 7 testing**
-
-Unit tests pass but actual app execution reveals additional issues that need fixing.
-
-### 8.1 Fix Runtime Issues
-- [ ] Fix Server.address() returning null (I-003)
-  - `@hono/node-server` serve() is async — need to wait for 'listening' event
-- [ ] Fix any other runtime errors discovered
-
-### 8.2 Verify Full App Flow
-- [ ] `pnpm dev` → TUI launches via `go run`
-- [ ] `pnpm build && ./dist/opencode` → TUI launches via built binary
+### 5.1 Full App Test
+- [ ] TUI launches correctly
 - [ ] Server starts and accepts connections
-- [ ] TUI communicates with server correctly
-- [ ] Basic operations work (start session, send message)
+- [ ] Basic session works (send message, get response)
 
-### 8.3 Edge Cases
-- [ ] Graceful error handling when TUI not found
-- [ ] Proper cleanup on exit
+### 5.2 Cleanup
+- [ ] Remove `bunfig.toml`
+- [ ] Remove `bun.lock` (keep pnpm-lock.yaml)
+- [ ] Update any remaining Bun references in docs
+
+### 5.3 Documentation
+- [ ] Update README.md with Node.js instructions
+- [ ] Document upgrade process for future upstream syncs
 
 ---
 
-## Files to Modify (Complete List)
+## Files to Create/Modify
 
-### Core Source Files (33 files)
+### New Files (compat layer)
 ```
-packages/opencode/src/
-├── app/app.ts
-├── auth/copilot.ts
-├── auth/index.ts
-├── bun/index.ts              # May be removed or repurposed
-├── cli/cmd/generate.ts
-├── cli/cmd/run.ts
-├── cli/cmd/tui.ts            # Major changes (embeddedFiles)
-├── cli/ui.ts
-├── config/config.ts
-├── config/hooks.ts
-├── file/fzf.ts
-├── file/index.ts
-├── file/ripgrep.ts
-├── file/time.ts
-├── format/formatter.ts
-├── format/index.ts
-├── global/index.ts
-├── lsp/client.ts
-├── lsp/server.ts
-├── provider/models.ts
-├── server/server.ts          # Bun.serve → @hono/node-server
-├── session/index.ts
-├── session/system.ts
-├── storage/storage.ts
-├── tool/bash.ts
-├── tool/edit.ts
-├── tool/glob.ts
-├── tool/grep.ts
-├── tool/ls.ts
-├── tool/read.ts
-├── tool/write.ts
-├── util/filesystem.ts
-└── util/log.ts
+packages/opencode/src/compat/
+├── register.ts    # globalThis.Bun = { ... }
+├── module.ts      # export { $, spawn, file, ... }
+├── bun.d.ts       # Type definitions
+├── index.ts       # Re-exports
+├── file.ts        # Bun.file(), Bun.write()
+├── spawn.ts       # Bun.spawn()
+├── shell.ts       # $ template tag
+├── glob.ts        # Bun.Glob
+├── which.ts       # Bun.which()
+├── serve.ts       # Bun.serve()
+├── stream.ts      # readableStreamToText()
+├── resolve.ts     # Bun.resolve()
+├── url.ts         # Bun.fileURLToPath()
+├── sleep.ts       # Bun.sleep()
+├── string.ts      # Bun.stringWidth()
+├── hash.ts        # Bun.hash.xxHash32()
+└── net.ts         # Bun.connect()
 ```
 
-### Config Files
+### Modified Files (minimal changes)
 ```
-/
-├── package.json              # Remove bun, add pnpm
-├── bunfig.toml               # Delete
-├── pnpm-workspace.yaml       # Create
-├── .npmrc                    # Create if needed
 packages/opencode/
-├── package.json              # Update deps, scripts
-└── tsconfig.json             # Update target
+├── src/index.ts       # Add: import "./compat/register"
+├── src/pty/index.ts   # bun-pty → node-pty
+├── package.json       # Dependencies & scripts
+└── tsconfig.json      # Paths alias
 ```
 
-### Build/Publish Scripts
+### Deleted Files
 ```
-packages/opencode/script/
-├── publish.ts                # Major rewrite
-└── schema.ts                 # Check for Bun usage
-scripts/
-├── stats.ts                  # Check for Bun usage
-└── ...
+bunfig.toml
+bun.lock
 ```
 
 ---
 
-## Risk Assessment (Simplified)
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| ESM/CJS issues | Medium | Medium | Use tsx in dev, esbuild for CJS bundle |
-| Performance regression | Low | Low | Benchmark critical paths |
-| Breaking changes | Medium | High | Comprehensive testing |
-
-> Note: SEA/Alpine/cross-platform risks removed — Linux-only scope
-
----
-
-## Success Criteria (Linux Only)
+## Success Criteria
 
 1. ✅ `pnpm install` succeeds
-2. ✅ `pnpm dev` launches the application
-3. ✅ `pnpm build` creates working bundle
-4. ✅ All CLI commands work
-5. ✅ TUI downloads, launches, and communicates with backend
-6. ✅ Tests pass
-7. ✅ Works on Linux x64
-8. ✅ No Bun-specific code remains (original code preserved as comments)
+2. ✅ `pnpm typecheck` passes
+3. ✅ `pnpm test` passes
+4. ✅ `pnpm dev -- --help` works
+5. ✅ TUI launches and communicates with backend
+6. ✅ Upstream files unchanged (except entry point + pty)
+7. ✅ Future upstream sync is easy (small diff)
+
+---
+
+## Reference
+
+- `dev_docs/polyfill-strategy.md` — Full strategy from GPT-5 consultation
+- `dev_docs/upstream-bun-api-analysis.md` — All Bun APIs in upstream
+- `dev_docs/bun-api-replacements.md` — Code examples for each API
+- `/home/jan/src/opencode_old_migration/` — Working compat implementations
